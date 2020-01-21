@@ -1,23 +1,98 @@
-#To run: python3 server.py
-# Go to in browser: localhost:8080/
+# To run: python3 server.py
+# requires install of "flask": pip install flask
+# Go to in browser: localhost:5000/
 
-from http.server import HTTPServer, BaseHTTPRequestHandler
+# from http.server import HTTPServer, BaseHTTPRequestHandler
 
-class Serv(BaseHTTPRequestHandler):
-    def do_GET(self):
-        #read the index page
-        if self.path == '/':
-            self.path = '/index.html'
-        try:
-            file_to_open = open(self.path[1:]).read()
-            self.send_response(200)
-            print("connection successful")
-        except:
-            file_to_open = "File not found"
-            self.send_response(404)
-        self.end_headers()
-        self.wfile.write(bytes(file_to_open, 'utf-8'))
+from flask import Flask, render_template, request
+import socket
+app = Flask(__name__)
+
+# class Serv(BaseHTTPRequestHandler):
+#     def do_GET(self):
+#         #read the index page
+#         if self.path == '/':
+#             self.path = '/index.html'
+#         try:
+#             file_to_open = open(self.path[1:]).read()
+#             self.send_response(200)
+#             print("connection successful")
+#         except:
+#             file_to_open = "File not found"
+#             self.send_response(404)
+#         self.end_headers()
+#         self.wfile.write(bytes(file_to_open, 'utf-8'))
 
 
-httpd = HTTPServer(('localhost', 8080), Serv)
-httpd.serve_forever()
+def request_transaction(transaction_number, command, user=None, stock=None, amount=None, filename=None):
+    data = {
+        'transaction_number': transaction_number,
+        # ADD, BUY, COMMIT, CANCEL, etc.
+        'command': command,
+    }
+
+    if user:
+        data['user'] = user
+
+    if stock:
+        data['stock'] = stock
+
+    if amount:
+        data['amount'] = amount
+
+    if filename:
+        data['filename'] = filename
+
+    # make a TCP/IP socket
+    serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    # address (ip and port) of where the web server is listening
+    server_address = ('localhost', 5000)
+
+    serverSocket.connect(server_address)
+    try:
+        # Send data
+        message = str(data)
+        serverSocket.sendall(message)
+        response = serverSocket.recv(1024)
+        print(response)
+
+    except IOError:
+        # Send response message for file not found
+        serverSocket.send('HTTP/ 1.1 404 NOT FOUND')
+
+    # close the socket
+    serverSocket.close()
+
+    return response
+
+# looks for forward slash to indicate index
+@app.route('/',  methods=['GET','POST'])
+def index():
+    # Get request for data from server
+    if request.method == 'GET':
+        # render_template looks for the directory 'template' then 'index.html'. Flask is smart.
+        return render_template('index.html')
+    # Sends data to a server
+    elif request.method == 'POST':
+        print(request.form)
+
+        # make_request gets parameters from workload generator (or user from browser)
+        response_message = request_transaction(
+            transaction_number=0,
+            command=request.form.get('command', None),
+            user=request.form.get('username', None),
+            stock=request.form.get('stock', None),
+            amount=request.form.get('amount', None),
+            filename=request.form.get('filename', None)
+        )
+
+        # look in "template" directory
+        return render_template('index.html', response_message=response_message)
+
+# run on external server
+if __name__ == "__main__":
+    app.run(host='localhost')
+
+# httpd = HTTPServer(('localhost', 8080), Serv)
+# httpd.serve_forever()
