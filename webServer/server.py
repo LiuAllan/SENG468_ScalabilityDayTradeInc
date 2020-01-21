@@ -23,8 +23,8 @@ app = Flask(__name__)
 #         self.end_headers()
 #         self.wfile.write(bytes(file_to_open, 'utf-8'))
 
-
-def request_transaction(transaction_number, command, user=None, stock=None, amount=None, filename=None):
+# gets transaction info from user/generator
+def request_info(transaction_number, command, user=None, stock=None, amount=None, filename=None):
     data = {
         'transaction_number': transaction_number,
         # ADD, BUY, COMMIT, CANCEL, etc.
@@ -77,8 +77,8 @@ def index():
     elif request.method == 'POST':
         print(request.form)
 
-        # make_request gets parameters from workload generator (or user from browser)
-        response_message = request_transaction(
+        # request_info gets parameters from workload generator (or user from browser)
+        response_message = request_info(
             transaction_number=0,
             command=request.form.get('command', None),
             user=request.form.get('username', None),
