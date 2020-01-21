@@ -28,10 +28,10 @@ def CANCEL_SET_BUY(params):
     print("CANCEL_SET_BUY {}".format(params))
 def SET_SELL_AMOUNT(params):
     print("SET_SELL_AMOUNT {}".format(params))
-def SET_SELL_TRIGER(params):
-    print("SET_SELL_TRIGER {}".format(params))
-def CANCEL_SET_BUY(params):
-    print("CANCEL_SET_BUY {}".format(params))
+def SET_SELL_TRIGGER(params):
+    print("SET_SELL_TRIGGER {}".format(params))
+def CANCEL_SET_SELL(params):
+    print("CANCEL_SET_SELL {}".format(params))
 def DUMPLOG(params):
     print("DUMPLOG {}".format(params))
 def DISPLAY_SUMMARY(params):
@@ -52,8 +52,8 @@ switcher = {
     "SET_BUY_TRIGGER":SET_BUY_TRIGGER,
     "CANCEL_SET_BUY":CANCEL_SET_BUY,
     "SET_SELL_AMOUNT":SET_SELL_AMOUNT,
-    "SET_SELL_TRIGER":SET_SELL_TRIGER,
-    "CANCEL_SET_BUY":CANCEL_SET_BUY,
+    "SET_SELL_TRIGGER":SET_SELL_TRIGGER,
+    "CANCEL_SET_SELL":CANCEL_SET_SELL,
     "DUMPLOG":DUMPLOG,
     "DISPLAY_SUMMARY":DISPLAY_SUMMARY
 
