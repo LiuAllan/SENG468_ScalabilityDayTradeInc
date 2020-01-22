@@ -12,18 +12,19 @@ CREATE TABLE Users (
 	UNIQUE(username),
 );
 
-CREATE TABLE Languages
-(
-	id			INTEGER		NOT NULL			REFERENCES Users (user_id),
-	language	CHAR(3)		UNIQUE NOT NULL -- Three character code according to ISO 631-1
+CREATE TABLE AddAmount(
+	id			INTEGER		NOT NULL 	REFERENCES Users (user_id),
+	amount		INTEGER		NOT NULL
+);
+
+CREATE TABLE Buy(
+	id			INTEGER		NOT NULL 	REFERENCES Users (user_id),
+	amount		INTEGER		NOT NULL
 );
 
 CREATE TABLE Companies (
 	company_id		SERIAL			NOT NULL PRIMARY KEY,
 	company_name	VARCHAR(10)		UNIQUE NOT NULL,
-	net_worth
-	share_value
-	
 );
 
 CREATE TABLE Transactions (
@@ -48,7 +49,7 @@ CREATE FUNCTION create_user(
 	_username		VARCHAR(20),
 	password		VARCHAR(30)
 )
-RETURNS VOID
+RETURNS void
 LANGUAGE plpgsql
 as $$
 BEGIN
@@ -56,5 +57,14 @@ BEGIN
 		username, password)
 	VALUES (first_name, last_name, account_num, _username,
 			crypt(password, gen_salt('bf')));
+END;
+$$;
+
+CREATE FUNCTION audit_log()
+RETURNS void
+LANGUAGE plpgsql
+as $$
+BEGIN
+	SELECT * FROM 
 END;
 $$;
