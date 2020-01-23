@@ -1,6 +1,55 @@
 import psycopg2
- 
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+
+def createDB():
+    file = open("DBInit.sql", "r")    
+    conn = None
+    
+    try:
+        print('Creating a database...')
+        conn = psycopg2.connect("dbname=postgres user=postgres password=postgres")
+        conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        cur = conn.cursor()
+        for line in file:
+            print(line)
+            cur.execute(line) 
+        cur.close()
+        file.close()
+    #need to close some open readers
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    finally:
+        if conn is not None:
+            conn.close()
+            print('Database connection closed.')
+
+def addTables():
+    file = open("daytrade.sql", "r")
+    conn = None
+    
+    try:
+        print('Adding tables...')
+        conn = psycopg2.connect("dbname=daytradedb user=seng468tracker password=SENG$^*")
+        conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        cur = conn.cursor()
+        for line in file:
+            print(line)
+            cur.execute(line) 
+        cur.close()
+        file.close()
+    #need to close some open readers
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    finally:
+        if conn is not None:
+            conn.close()
+            print('Database connection closed.')
+
+
 def connect():
+    createDB()
+    addTables()
+    
     f = open("log.txt", "w")
 	
     """ Connect to the PostgreSQL database server """
@@ -8,25 +57,24 @@ def connect():
     try:
  
         # connect to the PostgreSQL server
-        print('Connecting to the PostgreSQL database...')
-        conn = psycopg2.connect("dbname=seng468db user=postgres password=postgres")
+        print('Connecting to daytradedb database...')
+        conn = psycopg2.connect("dbname=daytradedb user=seng468tracker password=SENG$^*")
       
         # create a cursor
         cur = conn.cursor()
         
-   # execute a statement
-        print('PostgreSQL database version:')
-        cur.execute('SELECT * FROM Example')
- 
+        
+        #execute audit trail
+        cur.execute('SELECT * FROM audittrail;')
+		
         # display the PostgreSQL database server version
-        db_version = cur.fetchone()
-        for s in db_version:
-            f.write(''.join(s))
-        #print(db_version)
+        audit_table = cur.fetchall()
+        for s in audit_table:
+            f.write(','.join(str(v) for v in s))
        
-       # close the communication with the PostgreSQL
+        # close the communication with the PostgreSQL
         cur.close()
-        # close file
+        # close files
         f.close()
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
