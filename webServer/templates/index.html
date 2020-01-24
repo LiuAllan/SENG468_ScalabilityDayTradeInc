@@ -1,11 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<title>Team Kitkat Web Client Demo</title>
-<body>
-Hello world
-</body>
+    <head>
+        <meta charset="utf-8">
+        <title>Team Kitkat Web Client Demo</title>
+        <link rel="stylesheet" href="{{ url_for('static',    filename='css/index.css') }}">
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+        <script>
+        $(document).ready(function() {
+          $('#request_type').on('change', function() {
+            $("#amount").hide();
+            $("#stock_sym").hide();
+            $("#filename").hide();
+            $("#amount").val("");
+            $("#stock_sym").val("");
+            $("#filename").val("");
+
+            if ( this.value == 'ADD') {
+                $("#amount").show();
+            }
+            else if ( this.value == 'QUOTE') {
+                $("#stock_sym").show();
+            }
+            else if ( this.value == 'BUY') {
+                $("#amount").show();
+                $("#stock_sym").show();
+            }
+            else if ( this.value == 'SELL') {
+                $("#amount").show();
+                $("#stock_sym").show();
+            }
+            else if ( this.value == 'SET_BUY_AMOUNT') {
+                $("#amount").show();
+                $("#stock_sym").show();
+            }
+            else if ( this.value == 'CANCEL_SET_BUY') {
+                $("#stock_sym").show();
+            }
+            else if ( this.value == 'SET_BUY_TRIGGER') {
+                $("#amount").show();
+                $("#stock_sym").show();
+            }
+            else if ( this.value == 'SET_SELL_AMOUNT') {
+                $("#amount").show();
+                $("#stock_sym").show();
+            }
+            else if ( this.value == 'SET_SELL_TRIGGER') {
+                $("#amount").show();
+                $("#stock_sym").show();
+            }
+            else if ( this.value == 'CANCEL_SET_SELL') {
+                $("#stockSymbol").show();
+            }
+            else if ( this.value == 'DUMPLOG') {
+                $("#filename").show();
+            }
+          }).trigger('change');
+        });
+        </script>
 
 
-</head>
+    </head>
+
+    <body>
+    <div id="stocks" width="400" align="center">
+        <form action="{{ url_for('index') }}" method=post>
+            <div id="request_typeof_command">
+                Request Command for Stock:
+                <select name="req_type" id="req_type">
+                    <option value="" disabled="disabled" selected="selected">Choose your Request</option>
+                        <option value="ADD">ADD</option>
+					    <option value="QUOTE">QUOTE</option>
+					    <option value="BUY">BUY</option>
+                        <option value="SELL">SELL</option>
+                        <option value="DUMPLOG">DUMPLOG</option>
+                </select>
+            </div>
+
+            <div id=""username">Username:
+                <input type="text" name="username"><br />
+            </div>
+
+            <div id="amount" style="display:none">
+                Amount:
+                <input type="number" name="amount" value=""><br />
+            </div>
+
+            <div id="stock_symbol" style=display:none">
+                Stock Symbol:
+                <input type="text" name="stock"><br />
+            </div>
+
+            <input type="submit" value="Submit"><br />
+        </form>
+    </div>
+    </body>
 </html>

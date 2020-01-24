@@ -24,7 +24,7 @@ app = Flask(__name__)
 #         self.wfile.write(bytes(file_to_open, 'utf-8'))
 
 # gets transaction info from user/generator
-def request_info(transaction_number, command, user=None, stock=None, amount=None, filename=None):
+def request_info(transaction_number, command, user=None, stock_sym=None, amount=None, filename=None):
     data = {
         'transaction_number': transaction_number,
         # ADD, BUY, COMMIT, CANCEL, etc.
@@ -35,7 +35,7 @@ def request_info(transaction_number, command, user=None, stock=None, amount=None
         data['user'] = user
 
     if stock:
-        data['stock'] = stock
+        data['stock_sym'] = stock_sym
 
     if amount:
         data['amount'] = amount
@@ -75,6 +75,9 @@ def index():
         return render_template('index.html')
     # Sends data to a server
     elif request.method == 'POST':
+
+        # received some data from web client
+        # (https://stackoverflow.com/questions/40610644/python-3-flask-how-to-send-data-to-server)
         print(request.form)
 
         # request_info gets parameters from workload generator (or user from browser)
@@ -82,7 +85,7 @@ def index():
             transaction_number=0,
             command=request.form.get('command', None),
             user=request.form.get('username', None),
-            stock=request.form.get('stock', None),
+            stock=request.form.get('stock_sym', None),
             amount=request.form.get('amount', None),
             filename=request.form.get('filename', None)
         )
