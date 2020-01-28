@@ -24,9 +24,9 @@ app = Flask(__name__)
 #         self.wfile.write(bytes(file_to_open, 'utf-8'))
 
 # gets transaction info from user/generator
-def request_info(transaction_number, command, user=None, stock_sym=None, amount=None, filename=None):
+def request_info(command, user=None, stock_sym=None, amount=None, filename=None):
     data = {
-        'transaction_number': transaction_number,
+        # 'transaction_number': transaction_number,
         # ADD, BUY, COMMIT, CANCEL, etc.
         'command': command,
     }
@@ -34,7 +34,7 @@ def request_info(transaction_number, command, user=None, stock_sym=None, amount=
     if user:
         data['user'] = user
 
-    if stock:
+    if stock_sym:
         data['stock_sym'] = stock_sym
 
     if amount:
@@ -46,8 +46,8 @@ def request_info(transaction_number, command, user=None, stock_sym=None, amount=
     # make a TCP/IP socket
     serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    # address (ip and port) of where the web server is listening
-    server_address = ('localhost', 5000)
+    # address (ip and port) of where the transaction server is listening
+    server_address = ('transaction.serv', 44405)
 
     serverSocket.connect(server_address)
     try:
@@ -82,10 +82,10 @@ def index():
 
         # request_info gets parameters from workload generator (or user from browser)
         response_message = request_info(
-            transaction_number=0,
+            # transaction_number=0,
             command=request.form.get('command', None),
             user=request.form.get('username', None),
-            stock=request.form.get('stock_sym', None),
+            stock_sym=request.form.get('stock_sym', None),
             amount=request.form.get('amount', None),
             filename=request.form.get('filename', None)
         )
@@ -93,7 +93,7 @@ def index():
         # look in "template" directory
         return render_template('index.html', response_message=response_message)
 
-# run on external server
+# run the web server on IP address and port
 if __name__ == "__main__":
     app.run(host='localhost')
 

@@ -1,0 +1,43 @@
+body {
+	margin: 0px;
+	overflow-x:hidden;
+}
+
+a:link {
+	text-decoration: none;
+	color: white;
+}
+
+a:visited {
+	text-decoration: none;
+	color: white;
+}
+
+table.nav {
+	padding: 0px;
+	margin: 0px;
+	border: 1px solid black;
+	background-color: #3366cc;
+	width: 8000px;
+	height: 40px;
+}
+
+td.nav1 {
+	width:	60px;
+}
+
+td.nav2 {
+	width:	75px;
+}
+
+td.nav3 {
+	width:	700px;
+}
+
+p.nav {
+	margin: 0px;
+	color:white;
+	font-family:	arial,sans-serif;
+	font-size:	18px;
+	font-weight:	normal;
+}
