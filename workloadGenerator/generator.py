@@ -44,17 +44,17 @@ def request_info(command, user=None, stock_sym=None, amount=None, filename=None)
     # Send data
     print(data)
 
-
-    # something wrong here***************
+    # send a string of the data
     message = str(data).encode('utf-8')
     clientSocket.sendall(message)
-    response = clientSocket.recv(1024)
+    print(message)
+    response = clientSocket.recv(4096)
 
     strbuffer = ""
 
     while response:
         strbuffer += response
-        response = clientSocket.recv(4096)
+        response = json.loads(clientSocket.recv(4096).decode('utf-8'))
 
     clientSocket.close()
     print(strbuffer)

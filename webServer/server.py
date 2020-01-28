@@ -43,26 +43,25 @@ def request_info(command, user=None, stock_sym=None, amount=None, filename=None)
     if filename:
         data['filename'] = filename
 
-    # make a TCP/IP socket
-    serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # make a TCP/IP socket to transaction server
+    TransServerSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # address (ip and port) of where the transaction server is listening
     server_address = ('transaction.serv', 44405)
 
-    serverSocket.connect(server_address)
+    TransServerSocket.connect(server_address)
     try:
         # Send data
         message = str(data)
-        serverSocket.sendall(message)
-        response = serverSocket.recv(1024)
+        TransServerSocket.sendall(message)
+        response = TransServerSocket.recv(1024)
         print(response)
 
     except IOError:
         # Send response message for file not found
-        serverSocket.send('HTTP/ 1.1 404 NOT FOUND')
-
-    # close the socket
-    serverSocket.close()
+        TransServerSocket.send('HTTP/ 1.1 404 NOT FOUND\r\n\r\n')
+        # close the socket
+        TransServerSocket.close()
 
     return response
 
@@ -95,7 +94,7 @@ def index():
 
 # run the web server on IP address and port
 if __name__ == "__main__":
-    app.run(host='localhost')
+    app.run(host='localhost', port=5000)
 
 # httpd = HTTPServer(('localhost', 8080), Serv)
 # httpd.serve_forever()
