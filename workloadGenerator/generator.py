@@ -44,6 +44,7 @@ def request_info(command, user=None, stock_sym=None, amount=None, filename=None)
     # Send data
     print(data)
 
+
     # something wrong here***************
     message = str(data).encode('utf-8')
     clientSocket.sendall(message)
@@ -63,47 +64,62 @@ def request_info(command, user=None, stock_sym=None, amount=None, filename=None)
 
 # -----------------------------------
 def ADD(params):
-    request_info(listItems[0][0], listItems[0][1], amount=listItems[0][2])
+    request_info('ADD', params[0], amount=params[1])
     # print("ADD {}".format(params))
 def QUOTE(params):
-    request_info(listItems[0][0], listItems[0][1], listItems[0][2])
+    request_info('QUOTE', params[0], params[1])
     # print("QUOTE {}".format(params))
 def BUY(params):
-    request_info(listItems[0][0], listItems[0][1], listItems[0][2], listItems[0][3])
+    request_info('BUY', params[0], params[1], params[2])
     # print("BUY {}".format(params))
 def COMMIT_BUY(params):
-    request_info(listItems[0][0], listItems[0][1])
+    request_info('COMMIT_BUY', params[0])
     # print("COMMIT_BUY {}".format(params))
 def CANCEL_BUY(params):
-    request_info(listItems[0][0], listItems[0][1])
+    request_info('CANCEL_BUY', params[0])
     # print("CANCEL_BUY {}".format(params))
 def SELL(params):
-    print("SELL {}".format(params))
+    request_info('SELL', params[0], params[1], params[2])
+    # print("SELL {}".format(params))
 def COMMIT_SELL(params):
-    print("COMMIT_SELL {}".format(params))
+    request_info('COMMIT_SELL', params[0])
+    # print("COMMIT_SELL {}".format(params))
 def CANCEL_SELL(params):
-    print("CANCEL_SELL {}".format(params))
+    request_info('CANCEL_SELL', params[0])
+    # print("CANCEL_SELL {}".format(params))
 def SET_BUY_AMOUNT(params):
-    print("SET_BUY_AMOUNT {}".format(params))
+    request_info('SET_BUY_AMOUNT', params[0], params[1], params[2])
+    # print("SET_BUY_AMOUNT {}".format(params))
 def SET_BUY_TRIGGER(params):
-    print("SET_BUY_TRIGGER {}".format(params))
+    request_info('SET_BUY_TRIGGER', params[0], params[1], params[2])
+    # print("SET_BUY_TRIGGER {}".format(params))
 def CANCEL_SET_BUY(params):
-    print("CANCEL_SET_BUY {}".format(params))
+    request_info('CANCEL_SET_BUY', params[0], params[1])
+    # print("CANCEL_SET_BUY {}".format(params))
 def SET_SELL_AMOUNT(params):
-    print("SET_SELL_AMOUNT {}".format(params))
+    request_info('SET_SELL_AMOUNT', params[0], params[1], params[2])
+    # print("SET_SELL_AMOUNT {}".format(params))
 def SET_SELL_TRIGGER(params):
-    print("SET_SELL_TRIGGER {}".format(params))
+    request_info('SET_SELL_TRIGGER', params[0], params[1], params[2])
+    # print("SET_SELL_TRIGGER {}".format(params))
 def CANCEL_SET_SELL(params):
-    print("CANCEL_SET_SELL {}".format(params))
+    request_info('CANCEL_SET_SELL', params[0], params[1])
+    # print("CANCEL_SET_SELL {}".format(params))
 def DUMPLOG(params):
-    print("DUMPLOG {}".format(params))
+    #check to make sure there is a filename
+    if (len(params) == 2):
+        request_info('DUMPLOG', params[0], filename=params[1])
+    else:
+        request_info('DUMPLOG', params[0])
+    # print("DUMPLOG {}".format(params))
 def DISPLAY_SUMMARY(params):
-    print("DISPLAY_SUMMARY {}".format(params))
+    request_info('DISPLAY_SUMMARY', params[0])
+    # print("DISPLAY_SUMMARY {}".format(params))
 def PROBLEM(params):
     print("PROBLEM {}".format(params))
 
 
-# read in the workload file, split the commands into list so we can process them
+# read in the workload file, split the commands into list so they can be processed
 filename = "1userWorkLoad"
 switcher = {
     "ADD": ADD,
