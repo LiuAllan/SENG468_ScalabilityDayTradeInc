@@ -23,6 +23,59 @@ app = Flask(__name__)
 #         self.end_headers()
 #         self.wfile.write(bytes(file_to_open, 'utf-8'))
 
+
+# Make a socket for the webserver to be accessed through
+webserverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+# Make a socket for the transaction server to be accessed through
+transerverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+trans_server_address = ('www.transaction.serv', 44405)
+
+#Prepare a server socket
+webserverSocket.bind(("localhost", 5000))
+webserverSocket.listen(5)
+
+# keep sending if there are more commands
+while True:
+    # Establish the connection
+    print('Ready to serve...')
+    # accept returns a pair of client socket and address
+    connectionSocket, addr = webserverSocket.accept()
+
+    try:
+        # message from workload generator
+        message = connectionSocket.recv(1024).decode()
+        print(message)
+
+        #send message to transaction server
+        transerverSocket.connect(trans_server_address)
+        print('made a connection to transaction server')
+        transerverSocket.send(message)
+        print('sent message to transaction server')
+
+        #receive message back from transaction server
+        strbuffer = ""
+        data = transerverSocket.recv(4096)
+        while data:
+            strbuffer += data
+            data = transerverSocket.recv(4096)
+
+        # send response gotten from transaction server to workload generator
+        connectionSocket.send(data.encode())
+        connectionSocket.close()
+
+    except IOError:
+        # Send response message for file not found
+        connectionSocket.send('HTTP/ 1.1 404 NOT FOUND'.encode())
+        # Close client socket
+        connectionSocket.close()
+
+webserverSocket.close()
+
+
+
+# -------------------------------------------------------------------------------------
 # gets transaction info from user/generator
 def request_info(command, user=None, stock_sym=None, amount=None, filename=None):
     data = {

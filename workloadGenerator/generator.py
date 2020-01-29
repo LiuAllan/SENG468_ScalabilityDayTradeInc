@@ -45,16 +45,16 @@ def request_info(command, user=None, stock_sym=None, amount=None, filename=None)
     print(data)
 
     # send a string of the data
-    message = str(data).encode('utf-8')
+    message = str(data).encode()
     clientSocket.sendall(message)
     print(message)
-    response = clientSocket.recv(4096)
+    response = clientSocket.recv(4096).decode()
 
     strbuffer = ""
 
-    while response:
-        strbuffer += response
-        response = json.loads(clientSocket.recv(4096).decode('utf-8'))
+    # while response:
+    #     strbuffer += response
+    #     response = clientSocket.recv(4096).decode()
 
     clientSocket.close()
     print(strbuffer)
