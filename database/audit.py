@@ -12,7 +12,7 @@ def userCommand(cmd, usr, funds, server = 'CLT1', transnum = 1, t = time.time())
     string += "</userCommand>\n"
     return string
 
-def quoteServer():
+def quoteServer(t, server, transnum, qtime, usr, symbol, price, key):
     string = "<quoteServer>\n"
     string += "    <timestamp>" + str(t) + "</timestamp>\n"
     string += "    <server>" + str(server) + "</server>\n"
@@ -25,7 +25,7 @@ def quoteServer():
     string = "</quoteServer>"
     return string
 
-def accountTransaction():
+def accountTransaction(t, server, transnum, action, usr, funds):
     string = "<accountTransaction>\n"
     string += "    <timestamp>" + str(t) + "</timestamp>\n"
     string += "    <server>" + str(server) + "</server>\n"
@@ -36,7 +36,7 @@ def accountTransaction():
     string = "</accountTransaction>"
     return string
 
-def systemEvent():
+def systemEvent(t, server, transnum, cmd, usr, symbol, funds):
     string = "<systemEvent>\n"
     string += "    <timestamp>" + str(t) + "</timestamp>\n"
     string += "    <server>" + str(server) + "</server>\n"
@@ -48,7 +48,7 @@ def systemEvent():
     string = "</systemEvent>"
     return string
 
-def errorEvent():
+def errorEvent(t, server, transnum, cmd, usr, symbol, funds, msg):
     string = "<errorEvent>\n"
     string += "    <timestamp>" + str(t) + "</timestamp>\n"
     string += "    <server>" + str(server) + "</server>\n"
@@ -61,7 +61,7 @@ def errorEvent():
     string = "</errorEvent>"
     return string
 
-def debugEvent():
+def debugEvent(t, server, transnum, cmd, usr, symbol, funds, msg):
     string = "<debugEvent>\n"
     string += "    <timestamp>" + str(t) + "</timestamp>\n"
     string += "    <server>" + str(server) + "</server>\n"
@@ -76,6 +76,16 @@ def debugEvent():
 
 
 def main():
+    auditServerSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    auditServerSocket.bind(('localhost', 8000))
+    auditServerSocket.listen(5)
+
+    while True:
+        print('audit log ready...')
+        c, addr = auditServerSocket.accept()
+        info = auditServerSocket.recv(2048).decode()
+
     client_cmd = ['ADD', 'jiosesdo', 100.00]
     log = userCommand(client_cmd[0], client_cmd[1], client_cmd[2])
 
