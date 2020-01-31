@@ -41,23 +41,19 @@ def request_info(command, user=None, stock_sym=None, amount=None, filename=None)
 
     clientSocket.connect(server_address)
 
-    # Send data
-    print(data)
-
     # send a string of the data
     message = str(data).encode()
     clientSocket.sendall(message)
-    print(message)
     response = clientSocket.recv(4096).decode()
 
-    strbuffer = ""
+    # strbuffer = ''
 
     # while response:
     #     strbuffer += response
     #     response = clientSocket.recv(4096).decode()
 
     clientSocket.close()
-    print(strbuffer)
+    print(response)
 
     return response
 

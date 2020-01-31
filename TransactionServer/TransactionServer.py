@@ -31,10 +31,10 @@
 # s.close()
 
 
-from flask import Flask
+# from flask import Flask
 import socket
 import ast
-app = Flask(__name__)
+# app = Flask(__name__)
 
 # Make a socket for the transaction server
 transactionserverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -93,15 +93,18 @@ while True:
 
     # message from web server
     # ast.literal_eval converts string to dictionary
-    message = ast.literal_eval(connectionSocket.recv(1024).decode())
+    message = ast.literal_eval(connectionSocket.recv(4096).decode())
     print(message)
 
     logic(message)
 
     response = 'returned' + str(message)
-    connectionSocket.send(response.encode())
+    connectionSocket.sendall(response.encode())
+    # close the socket
+    connectionSocket.close()
 
 
 
-if __name__ == "__main__":
-    app.run(host='localhost', port=6000)
+
+# if __name__ == "__main__":
+#     app.run(host='localhost', port=6000)

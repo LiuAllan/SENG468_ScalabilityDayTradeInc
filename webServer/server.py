@@ -4,9 +4,9 @@
 
 # from http.server import HTTPServer, BaseHTTPRequestHandler
 
-from flask import Flask, render_template, request
+# from flask import Flask, render_template, request
 import socket
-app = Flask(__name__)
+# app = Flask(__name__)
 
 # class Serv(BaseHTTPRequestHandler):
 #     def do_GET(self):
@@ -30,7 +30,7 @@ webserverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # Make a socket for the transaction server to be accessed through
 transerverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-trans_server_address = ('www.transaction.serv', 44405)
+trans_server_address = ('localhost', 6000)
 
 #Prepare a server socket
 webserverSocket.bind(("localhost", 5000))
@@ -51,25 +51,27 @@ while True:
         #send message to transaction server
         transerverSocket.connect(trans_server_address)
         print('made a connection to transaction server')
-        transerverSocket.send(message)
+        transerverSocket.send(message.encode())
         print('sent message to transaction server')
 
         #receive message back from transaction server
-        strbuffer = ""
-        data = transerverSocket.recv(4096)
+        strbuffer = ''
+        data = transerverSocket.recv(4096).decode()
         while data:
             strbuffer += data
-            data = transerverSocket.recv(4096)
+            data = transerverSocket.recv(4096).decode()
 
         # send response gotten from transaction server to workload generator
         connectionSocket.send(data.encode())
         connectionSocket.close()
+        print(strbuffer)
 
     except IOError:
         # Send response message for file not found
         connectionSocket.send('HTTP/ 1.1 404 NOT FOUND'.encode())
         # Close client socket
         connectionSocket.close()
+
 
 webserverSocket.close()
 
@@ -146,8 +148,8 @@ def index():
         return render_template('index.html', response_message=response_message)
 
 # run the web server on IP address and port
-if __name__ == "__main__":
-    app.run(host='localhost', port=5000)
+# if __name__ == "__main__":
+#     app.run(host='localhost', port=5000)
 
 # httpd = HTTPServer(('localhost', 8080), Serv)
 # httpd.serve_forever()
