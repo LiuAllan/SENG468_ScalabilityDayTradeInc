@@ -43,7 +43,7 @@ def request_info(command, user=None, stock_sym=None, amount=None, filename=None)
 
     # send a string of the data
     message = str(data).encode()
-    clientSocket.sendall(message)
+    clientSocket.send(message)
     response = clientSocket.recv(4096).decode()
 
     # strbuffer = ''
@@ -52,8 +52,8 @@ def request_info(command, user=None, stock_sym=None, amount=None, filename=None)
     #     strbuffer += response
     #     response = clientSocket.recv(4096).decode()
 
-    clientSocket.close()
     print(response)
+    clientSocket.close()
 
     return response
 
@@ -63,7 +63,8 @@ def ADD(params):
     request_info('ADD', params[0], amount=params[1])
     # print("ADD {}".format(params))
 def QUOTE(params):
-    request_info('QUOTE', params[0], params[1])
+    test = request_info('QUOTE', params[0], params[1])
+    print(test)
     # print("QUOTE {}".format(params))
 def BUY(params):
     request_info('BUY', params[0], params[1], params[2])
