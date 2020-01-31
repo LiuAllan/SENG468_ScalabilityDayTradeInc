@@ -27,9 +27,6 @@ app = Flask(__name__)
 # Make a socket for the webserver to be accessed through
 webserverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-# Make a socket for the transaction server to be accessed through
-transerverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
 trans_server_address = ('localhost', 6000)
 
 #Prepare a server socket
@@ -40,6 +37,10 @@ webserverSocket.listen(5)
 while True:
     # Establish the connection
     print('Ready to serve...')
+
+    # Make a socket for the transaction server to be accessed through
+    transerverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
     # accept returns a pair of client socket and address
     connectionSocket, addr = webserverSocket.accept()
 
