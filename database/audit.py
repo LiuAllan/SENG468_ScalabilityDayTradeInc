@@ -1,6 +1,7 @@
 import socket
 import time
 import re
+import pickle
 
 def userCommand(cmd, usr, funds, server = 'CLT1', transnum = 1, t = time.time()):
     string = "    <userCommand>\n"
@@ -80,11 +81,19 @@ def main():
     auditServerSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     auditServerSocket.bind(('localhost', 44409))
     auditServerSocket.listen(5)
+    print('Ready to audit...')
 
     while True:
         c, addr = auditServerSocket.accept()
         print('audit log accepted...')
-        line = auditServerSocket.recv(2048).decode()
+        try:
+            line = pickle.loads(c.recv(4096))
+            print('line received is ', line)
+            c.send('info received!'.encode())
+            c.close()
+        except IOError as err:
+            print(err)
+            c.close()
 
     #file = open("1userWorkLoad.txt", "r")
     #Creates a list of list which each line is broken into parameters
