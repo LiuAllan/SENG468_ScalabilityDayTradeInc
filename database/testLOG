@@ -2,7 +2,7 @@
 <log>
 
     <userCommand>
-        <timestamp>1580461407.909915</timestamp>
+        <timestamp>1580467841.657823</timestamp>
         <server>CLT1</server>
         <transactionNum>1<transactionNum>
         <command>ADD</command>
@@ -10,7 +10,7 @@
         <funds>63511.53</funds>
     </userCommand>
     <accountTransaction>
-        <timestamp>1580461407.909915</timestamp>
+        <timestamp>1580467841.657823</timestamp>
         <server>CLT1</server>
         <transactionNum>1<transactionNum>
         <action>add</action>
@@ -18,27 +18,27 @@
         <funds>63511.53</funds>
     </accountTransaction>
     <quoteServer>
-        <timestamp>1580461407.909915</timestamp>
+        <timestamp>1580467841.657823</timestamp>
         <server>CLT1</server>
         <transactionNum>1<transactionNum>
-        <quoteServerTime>1580461407.909915</quoteServerTime>
+        <quoteServerTime>1580467841.657823</quoteServerTime>
         <username>oY01WVirLr</username>
         <stockSymbol>ABC</stockSymbol>
         <price>1.0</price>
         <cryptokey>4rn94ng</cryptokey>
     </quoteServer>
     <quoteServer>
-        <timestamp>1580461407.909915</timestamp>
+        <timestamp>1580467841.657823</timestamp>
         <server>CLT1</server>
         <transactionNum>1<transactionNum>
-        <quoteServerTime>1580461407.909915</quoteServerTime>
+        <quoteServerTime>1580467841.657823</quoteServerTime>
         <username>oY01WVirLr</username>
         <stockSymbol>ABC</stockSymbol>
         <price>1.0</price>
         <cryptokey>4rn94ng</cryptokey>
     </quoteServer>
     <userCommand>
-        <timestamp>1580461407.909915</timestamp>
+        <timestamp>1580467841.657823</timestamp>
         <server>CLT1</server>
         <transactionNum>1<transactionNum>
         <command>ADD</command>
@@ -46,7 +46,7 @@
         <funds>108527.76000000001</funds>
     </userCommand>
     <accountTransaction>
-        <timestamp>1580461407.909915</timestamp>
+        <timestamp>1580467841.657823</timestamp>
         <server>CLT1</server>
         <transactionNum>1<transactionNum>
         <action>add</action>
@@ -54,7 +54,7 @@
         <funds>108527.76000000001</funds>
     </accountTransaction>
     <userCommand>
-        <timestamp>1580461407.909915</timestamp>
+        <timestamp>1580467841.657823</timestamp>
         <server>CLT1</server>
         <transactionNum>1<transactionNum>
         <command>ADD</command>
@@ -62,7 +62,7 @@
         <funds>180407.74</funds>
     </userCommand>
     <accountTransaction>
-        <timestamp>1580461407.909915</timestamp>
+        <timestamp>1580467841.657823</timestamp>
         <server>CLT1</server>
         <transactionNum>1<transactionNum>
         <action>add</action>
@@ -70,7 +70,7 @@
         <funds>180407.74</funds>
     </accountTransaction>
     <userCommand>
-        <timestamp>1580461407.909915</timestamp>
+        <timestamp>1580467841.657823</timestamp>
         <server>CLT1</server>
         <transactionNum>1<transactionNum>
         <command>ADD</command>
@@ -78,7 +78,7 @@
         <funds>254722.88999999998</funds>
     </userCommand>
     <accountTransaction>
-        <timestamp>1580461407.909915</timestamp>
+        <timestamp>1580467841.657823</timestamp>
         <server>CLT1</server>
         <transactionNum>1<transactionNum>
         <action>add</action>
@@ -86,17 +86,17 @@
         <funds>254722.88999999998</funds>
     </accountTransaction>
     <quoteServer>
-        <timestamp>1580461407.909915</timestamp>
+        <timestamp>1580467841.657823</timestamp>
         <server>CLT1</server>
         <transactionNum>1<transactionNum>
-        <quoteServerTime>1580461407.909915</quoteServerTime>
+        <quoteServerTime>1580467841.657823</quoteServerTime>
         <username>oY01WVirLr</username>
         <stockSymbol>ABC</stockSymbol>
         <price>1.0</price>
         <cryptokey>4rn94ng</cryptokey>
     </quoteServer>
     <userCommand>
-        <timestamp>1580461407.909915</timestamp>
+        <timestamp>1580467841.657823</timestamp>
         <server>CLT1</server>
         <transactionNum>1<transactionNum>
         <command>ADD</command>
@@ -104,7 +104,7 @@
         <funds>307525.82</funds>
     </userCommand>
     <accountTransaction>
-        <timestamp>1580461407.909915</timestamp>
+        <timestamp>1580467841.657823</timestamp>
         <server>CLT1</server>
         <transactionNum>1<transactionNum>
         <action>add</action>
@@ -112,27 +112,27 @@
         <funds>307525.82</funds>
     </accountTransaction>
     <quoteServer>
-        <timestamp>1580461407.909915</timestamp>
+        <timestamp>1580467841.657823</timestamp>
         <server>CLT1</server>
         <transactionNum>1<transactionNum>
-        <quoteServerTime>1580461407.909915</quoteServerTime>
+        <quoteServerTime>1580467841.657823</quoteServerTime>
         <username>oY01WVirLr</username>
         <stockSymbol>ABC</stockSymbol>
         <price>1.0</price>
         <cryptokey>4rn94ng</cryptokey>
     </quoteServer>
     <quoteServer>
-        <timestamp>1580461407.909915</timestamp>
+        <timestamp>1580467841.657823</timestamp>
         <server>CLT1</server>
         <transactionNum>1<transactionNum>
-        <quoteServerTime>1580461407.909915</quoteServerTime>
+        <quoteServerTime>1580467841.657823</quoteServerTime>
         <username>oY01WVirLr</username>
         <stockSymbol>ABC</stockSymbol>
         <price>1.0</price>
         <cryptokey>4rn94ng</cryptokey>
     </quoteServer>
     <userCommand>
-        <timestamp>1580461407.909915</timestamp>
+        <timestamp>1580467841.657823</timestamp>
         <server>CLT1</server>
         <transactionNum>1<transactionNum>
         <command>ADD</command>
@@ -140,7 +140,7 @@
         <funds>395389.55</funds>
     </userCommand>
     <accountTransaction>
-        <timestamp>1580461407.909915</timestamp>
+        <timestamp>1580467841.657823</timestamp>
         <server>CLT1</server>
         <transactionNum>1<transactionNum>
         <action>add</action>
@@ -148,10 +148,10 @@
         <funds>395389.55</funds>
     </accountTransaction>
     <quoteServer>
-        <timestamp>1580461407.909915</timestamp>
+        <timestamp>1580467841.657823</timestamp>
         <server>CLT1</server>
         <transactionNum>1<transactionNum>
-        <quoteServerTime>1580461407.909915</quoteServerTime>
+        <quoteServerTime>1580467841.657823</quoteServerTime>
         <username>oY01WVirLr</username>
         <stockSymbol>ABC</stockSymbol>
         <price>1.0</price>

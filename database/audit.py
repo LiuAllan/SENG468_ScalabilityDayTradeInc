@@ -77,96 +77,95 @@ def debugEvent(t, server, transnum, cmd, usr, symbol, funds, msg):
 
 
 def main():
-    #auditServerSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    #auditServerSocket.bind(('localhost', 8000))
-    #auditServerSocket.listen(5)
+    auditServerSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    auditServerSocket.bind(('localhost', 44409))
+    auditServerSocket.listen(5)
 
-    #while True:
-    #    c, addr = auditServerSocket.accept()
-    #    print('audit log accepted...')
-    #    info = auditServerSocket.recv(2048).decode()
+    while True:
+        c, addr = auditServerSocket.accept()
+        print('audit log accepted...')
+        line = auditServerSocket.recv(2048).decode()
 
-    file = open("1userWorkLoad.txt", "r")
-    # Creates a list of list which each line is broken into parameters
-    contents = [re.sub("\[[0-9]+] ", "", item.strip()).split(",") for item in file.readlines()]
-    file.close()
-    print(contents)
+    #file = open("1userWorkLoad.txt", "r")
+    #Creates a list of list which each line is broken into parameters
+    #contents = [re.sub("\[[0-9]+] ", "", item.strip()).split(",") for item in file.readlines()]
+    #file.close()
+    #print(contents)
     usr_funds = 0.00
 
     buy_amount = 0.00
     sell_amount = 0.00
 
     log = ""
-    for line in contents:
-        if(line[0] == "ADD"):
-            print("ADD")
-            usr_funds += float(line[2])
-            log += userCommand(line[0], line[1], usr_funds)
-            log += accountTransaction(action = 'add', usr = line[1], funds = usr_funds)
-        elif (line[0] == "QUOTE"):
-            print("QUOTE")
-            log += quoteServer(usr = line[1])
-        elif (line[0] == "BUY"):
-            print("BUY")
-            buy_amount += float(line[3])
-            #log += userCommand(line[0], line[1], usr_funds)
-            #log += systemEvent()
-            #log += quoteServer()
-            #log += accountTransaction()
-        elif (line[0] == "COMMIT_BUY"):
-            print("COMMIT_BUY")
-            #log += userCommand(line[0], line[1], line[2])
-            #log += systemEvent()
-        elif (line[0] == "CANCEL_BUY"):
-            print("CANCEL_BUY")
-            #log += userCommand()
-            #log += systemEvent()
-        elif (line[0] == "SELL"):
-            print("SELL")
-            #log += userCommand(line[0], line[1], usr_funds)
-            #log += systemEvent()
-            #log += quoteServer()
-            #log += accountTransaction()
-        elif (line[0] == "COMMIT_SELL"):
-            print("COMMIT_SELL")
-            #log += userCommand(line[0], line[1], line[2])
-            #log += systemEvent()
-        elif (line[0] == "CANCEL_SELL"):
-            print("CANCEL_SELL")
-            #log += userCommand(line[0], line[1], line[2])
-            #log += systemEvent()
-        elif (line[0] == "SET_BUY_AMOUNT"):
-            print("SET_BUY_AMOUNT")
-            #log += userCommand(line[0], line[1], line[2])
-            #log += systemEvent()
-        elif (line[0] == "CANCEL_SET_BUY"):
-            print("CANCEL_SET_BUY")
-            #log += userCommand(line[0], line[1], line[2])
-            #log += systemEvent()
-        elif (line[0] == "SET_BUY_TRIGGER"):
-            print("SET_BUY_TRIGGER")
-            #log += userCommand(line[0], line[1], line[2])
-            #log += systemEvent()
-        elif (line[0] == "SET_SELL_AMOUNT"):
-            print("SET_SELL_AMOUNT")
-            #log += userCommand(line[0], line[1], line[2])
-            #log += systemEvent()
-        elif (line[0] == "SET_SELL_TRIGGER"):
-            print("SET_SELL_TRIGGER")
-            #log += userCommand(line[0], line[1], line[2])
-            #log += systemEvent()
-        elif (line[0] == "CANCEL_SET_SELL"):
-            print("CANCEL_SET_SELL")
-            #log += userCommand(line[0], line[1], line[2])
-            #log += systemEvent()
-        elif (line[0] == "DUMPLOG"):
-            print("DUMPLOG")
-            log_string = '<?xml version="1.0"?>\n<log>\n\n' + log + '\n</log>'
-            xml_file = open(line[1], "w")
-            xml_file.write(log_string)
-        elif (line[0] == "DISPLAY_SUMMARY"):
-            print("DISPLAY_SUMMARY")
-            #log += userCommand(line[0], line[1], line[2])
+    if(line[0] == "ADD"):
+        print("ADD")
+        usr_funds += float(line[2])
+        log += userCommand(line[0], line[1], usr_funds)
+        log += accountTransaction(action = 'add', usr = line[1], funds = usr_funds)
+    elif (line[0] == "QUOTE"):
+        print("QUOTE")
+        log += quoteServer(usr = line[1])
+    elif (line[0] == "BUY"):
+        print("BUY")
+        buy_amount += float(line[3])
+        #log += userCommand(line[0], line[1], usr_funds)
+        #log += systemEvent()
+        #log += quoteServer()
+        #log += accountTransaction()
+    elif (line[0] == "COMMIT_BUY"):
+        print("COMMIT_BUY")
+        #log += userCommand(line[0], line[1], line[2])
+        #log += systemEvent()
+    elif (line[0] == "CANCEL_BUY"):
+        print("CANCEL_BUY")
+        #log += userCommand()
+        #log += systemEvent()
+    elif (line[0] == "SELL"):
+        print("SELL")
+        #log += userCommand(line[0], line[1], usr_funds)
+        #log += systemEvent()
+        #log += quoteServer()
+        #log += accountTransaction()
+    elif (line[0] == "COMMIT_SELL"):
+        print("COMMIT_SELL")
+        #log += userCommand(line[0], line[1], line[2])
+        #log += systemEvent()
+    elif (line[0] == "CANCEL_SELL"):
+        print("CANCEL_SELL")
+        #log += userCommand(line[0], line[1], line[2])
+        #log += systemEvent()
+    elif (line[0] == "SET_BUY_AMOUNT"):
+        print("SET_BUY_AMOUNT")
+        #log += userCommand(line[0], line[1], line[2])
+        #log += systemEvent()
+    elif (line[0] == "CANCEL_SET_BUY"):
+        print("CANCEL_SET_BUY")
+        #log += userCommand(line[0], line[1], line[2])
+        #log += systemEvent()
+    elif (line[0] == "SET_BUY_TRIGGER"):
+        print("SET_BUY_TRIGGER")
+        #log += userCommand(line[0], line[1], line[2])
+        #log += systemEvent()
+    elif (line[0] == "SET_SELL_AMOUNT"):
+        print("SET_SELL_AMOUNT")
+        #log += userCommand(line[0], line[1], line[2])
+        #log += systemEvent()
+    elif (line[0] == "SET_SELL_TRIGGER"):
+        print("SET_SELL_TRIGGER")
+        #log += userCommand(line[0], line[1], line[2])
+        #log += systemEvent()
+    elif (line[0] == "CANCEL_SET_SELL"):
+        print("CANCEL_SET_SELL")
+        #log += userCommand(line[0], line[1], line[2])
+        #log += systemEvent()
+    elif (line[0] == "DUMPLOG"):
+        print("DUMPLOG")
+        log_string = '<?xml version="1.0"?>\n<log>\n\n' + log + '\n</log>'
+        xml_file = open(line[1], "w")
+        xml_file.write(log_string)
+    elif (line[0] == "DISPLAY_SUMMARY"):
+        print("DISPLAY_SUMMARY")
+        #log += userCommand(line[0], line[1], line[2])
 
     print(log_string)
 	
