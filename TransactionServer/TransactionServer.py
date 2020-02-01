@@ -35,30 +35,43 @@
 import socket
 import ast
 import pickle
+
 # app = Flask(__name__)
 
 # Make a socket for the transaction server
 transactionserverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-#command, user=None, stock_sym=None, amount=None, filename=None
+# command, user=None, stock_sym=None, amount=None, filename=None
+usr_funds = 0.00
+buy_amt = []
+sell_amt = []
+
+
 def logic(message):
+
     if message['command'] == 'ADD':
-        print(message['user'] + ', ' + message['amount'])
-        # if message['amount'] is None:
-        #     response_msg = "No input for Amount"
-        #     # need to audit the error here
-        # elif message['amount'] < 0:
-        #     response_msg = "Attempted to add negative currency"
-        #     # need to audit the error here
-        # else:
-        #     # need to update the user's bank balance in DB by adding the amount
-        #     response_msg = "Added $%s to %s's account." % (format_money(message['amount']), message['user'])
-        #     # need to audit the transaction here
-        # return response_msg
+        # print(message['user'] + ', ' + message['amount'])
+        if message['amount'] is None:
+            response_msg = "No input for Amount"
+            # need to audit the error here
+        elif float(message['amount']) < 0:
+            response_msg = "Attempted to add negative currency"
+            # need to audit the error
+
+        else:
+            # need to update the user's bank balance in DB by adding the amount
+            global usr_funds
+            usr_funds += float(message['amount'])
+            print(usr_funds)
+            response_msg = "Added $%s to %s's account." % (format_money(float(message['amount'])), message['user'])
+            # need to audit the transaction here
+        return response_msg
 
     elif message['command'] == 'QUOTE':
         # print(message['user'] + ', ' + message['stock_sym'])
         current_quote = get_quote(message)
+        print('got current quote')
+        print(current_quote)
         response_msg = "Quote for " + str(message['stock_sym']) + ':' + str(current_quote[0])
         print(response_msg)
         return response_msg
@@ -94,23 +107,30 @@ def logic(message):
     else:
         print('problem')
 
+
 def format_money(money):
-    return str(int(float(money)/100)) + '.' + "{:02d}".format(int(money%100))
+    return str(int(money)) + '.' + "{:02d}".format(int(money % 10000))
+
 
 def get_quote(message):
     quoteserverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # could possibly make this faster by splitting stock symbols up
     quoteserverSocket.connect(('quoteserve.seng.uvic.ca', 4442))
     print('connected to quote server')
+
+    test = str(message['stock_sym'] + ',' + message['user']) + '\n'
+    print(test)
     quoteserverSocket.send(str(message['stock_sym'] + ',' + message['user']) + '\n')
     print('sent symbol and user to quote server')
     reply = quoteserverSocket.recv(1024)
     # reply_dict = {'quote': None, 'sym': None, 'userid': None, 'timestamp': None, 'cryptokey': None}
     # split_reply = reply.split(',')
     # reply[0]
+    print(type(reply))
     reply = ast.literal_eval(str(reply.split(',')))
     quoteserverSocket.close()
     return reply
+
 
 # Prepare a server socket
 transactionserverSocket.bind(('localhost', 44406))
@@ -121,21 +141,24 @@ while True:
     print('Ready to serve...')
 
     # Make a socket for the quoteserver
-    #quoteserverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # quoteserverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # Make a socket for the database
     databaseSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # accept returns a pair of client socket and address
     connectionSocket, addr = transactionserverSocket.accept()
 
-
     # message from web server
     # ast.literal_eval converts string to dictionary
     message = ast.literal_eval(connectionSocket.recv(4096).decode())
+    print(message)
 
     message = logic(message)
 
-    response = 'returned ' + str(message)
+    response = 'returned' + str(message)
     connectionSocket.sendall(response.encode())
     # close the socket
     connectionSocket.close()
+
+# if __name__ == "__main__":
+#     app.run(host='localhost', port=6000)
