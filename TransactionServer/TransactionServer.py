@@ -42,25 +42,25 @@ transactionserverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 #command, user=None, stock_sym=None, amount=None, filename=None
 def logic(message):
     if message['command'] == 'ADD':
-        # print(message['user'] + ', ' + message['amount'])
-        if message['amount'] is None:
-            response_msg = "No input for Amount"
-            # need to audit the error here
-        elif message['amount'] < 0:
-            response_msg = "Attempted to add negative currency"
-            # need to audit the error here
-        else:
-            # need to update the user's bank balance in DB by adding the amount
-            response_msg = "Added $%s to %s's account." % (format_money(message['amount']), message['user'])
-            # need to audit the transaction here
-        return response_msg
+        print(message['user'] + ', ' + message['amount'])
+        # if message['amount'] is None:
+        #     response_msg = "No input for Amount"
+        #     # need to audit the error here
+        # elif message['amount'] < 0:
+        #     response_msg = "Attempted to add negative currency"
+        #     # need to audit the error here
+        # else:
+        #     # need to update the user's bank balance in DB by adding the amount
+        #     response_msg = "Added $%s to %s's account." % (format_money(message['amount']), message['user'])
+        #     # need to audit the transaction here
+        # return response_msg
 
     elif message['command'] == 'QUOTE':
-        # print(message['user'] + ', ' + message['stock_sym'])
-        current_quote = get_quote(message)
-        response_msg = "Quote for " + str(message['stock_sym']) + ':' + str(current_quote['price'])
-        print(response_msg)
-        return response_msg
+        print(message['user'] + ', ' + message['stock_sym'])
+        # current_quote = get_quote(message)
+        # response_msg = "Quote for " + str(message['stock_sym']) + ':' + str(current_quote['price'])
+        # print(response_msg)
+        # return response_msg
 
     elif message['command'] == 'BUY':
         print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
