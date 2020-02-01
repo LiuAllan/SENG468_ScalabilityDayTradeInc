@@ -4,9 +4,9 @@
 
 # from http.server import HTTPServer, BaseHTTPRequestHandler
 
-from flask import Flask, render_template, request
+# from flask import Flask, render_template, request
 import socket
-app = Flask(__name__)
+# app = Flask(__name__)
 
 # class Serv(BaseHTTPRequestHandler):
 #     def do_GET(self):
