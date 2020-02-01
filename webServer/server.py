@@ -27,10 +27,10 @@ app = Flask(__name__)
 # Make a socket for the webserver to be accessed through
 webserverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-trans_server_address = ('localhost', 6000)
+trans_server_address = ('localhost', 44406)
 
 #Prepare a server socket
-webserverSocket.bind(("localhost", 5000))
+webserverSocket.bind(("localhost", 44405))
 webserverSocket.listen(5)
 
 # keep sending if there are more commands

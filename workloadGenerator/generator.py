@@ -12,7 +12,7 @@ from threading import Thread, current_thread
 
 # Global variables
 webserver_ip = 'localhost'
-webserver_port = 5000
+webserver_port = 44405
 
 def request_info(command, user=None, stock_sym=None, amount=None, filename=None):
     data = {
