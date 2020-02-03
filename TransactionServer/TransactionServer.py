@@ -48,27 +48,33 @@ sell_amt = []
 
 
 def logic(message):
+    # this fixes the bug when comparing "amount < 0"
+    amount = message.get('amount')
+
+    # remove the decimals and convert to an int
+    if amount:
+        amount = int(float(amount) * 100)
+    print(amount)
+
 
     if message['command'] == 'ADD':
-        # print(message['user'] + ', ' + message['amount'])
         if message['amount'] is None:
             response_msg = "No input for Amount"
             # need to audit the error here
-        elif float(message['amount']) < 0:
+        elif (amount) < 0: # remove the float on the lab machines and run with python
             response_msg = "Attempted to add negative currency"
             # need to audit the error
 
         else:
             # need to update the user's bank balance in DB by adding the amount
             global usr_funds
-            usr_funds += float(message['amount'])
-            print(usr_funds)
-            response_msg = "Added $%s to %s's account." % (format_money(float(message['amount'])), message['user'])
+            usr_funds += float(format_money(amount))
+            print('user funds is:', usr_funds)
+            response_msg = "Added $%s to %s's account." % (format_money(amount), message['user'])
             # need to audit the transaction here
         return response_msg
 
     elif message['command'] == 'QUOTE':
-        # print(message['user'] + ', ' + message['stock_sym'])
         current_quote = get_quote(message)
         print('got current quote')
         print(current_quote)
@@ -77,17 +83,46 @@ def logic(message):
         return response_msg
 
     elif message['command'] == 'BUY':
-        print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
+        # print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
+        #First, check the user balance if they have enough money
+        if usr_funds >= amount:
+            current_quote = get_quote(message)
+            curr_price = current_quote[0]
+            # need to convert since amount has no decimals
+            global buy_amt
+            buy_amt = int(int(amount) / float(curr_price)) * float(curr_price)
+            # timestamp = int(current_quote[3])
+
+            response_msg = "Buying stock for " + str(message['stock_id']) + ":" + str(curr_price)
+        # Update the buy list or somehow overwrite the old values in DB
+
+        else:
+            response_msg = "Not enough funds in user account to purchase stock"
+
+        return response_msg
+
     elif message['command'] == 'COMMIT_BUY':
         print(message['user'])
+
     elif message['command'] == 'CANCEL_BUY':
-        print(message['user'])
+        # print(message['user'])
+        buy_amt = []
+        response_msg = "Cancelled Buy"
+        return response_msg
+
     elif message['command'] == 'SELL':
         print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
+
     elif message['command'] == 'COMMIT_SELL':
         print(message['user'])
+
     elif message['command'] == 'CANCEL_SELL':
-        print(message['user'])
+        # print(message['user'])
+        global sell_amt
+        sell_amt = []
+        response_msg = "Cancelled Sell"
+        return response_msg
+
     elif message['command'] == 'SET_BUY_AMOUNT':
         print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
     elif message['command'] == 'SET_BUY_TRIGGER':
@@ -109,8 +144,8 @@ def logic(message):
 
 
 def format_money(money):
-    return str(int(money)) + '.' + "{:02d}".format(int(money % 10000))
-
+    # return str(int(money)) + '.' + "{:02d}".format(int(money % 10000))
+    return str(int(float(money) / 100)) + '.' + "{:02d}".format(int(money % 100))
 
 def get_quote(message):
     quoteserverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -155,7 +190,7 @@ while True:
 
     message = logic(message)
 
-    response = 'returned' + str(message)
+    response = 'returned ' + str(message)
     connectionSocket.sendall(response.encode())
     # close the socket
     connectionSocket.close()
