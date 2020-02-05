@@ -64,7 +64,6 @@ def ADD(params):
     # print("ADD {}".format(params))
 def QUOTE(params):
     test = request_info('QUOTE', params[0], params[1])
-    print(test)
     # print("QUOTE {}".format(params))
 def BUY(params):
     request_info('BUY', params[0], params[1], params[2])

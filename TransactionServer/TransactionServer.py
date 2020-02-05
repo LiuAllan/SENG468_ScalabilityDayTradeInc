@@ -35,6 +35,7 @@
 import socket
 import ast
 import pickle
+import time
 
 # app = Flask(__name__)
 
@@ -91,10 +92,15 @@ def logic(message):
             # need to convert since amount has no decimals
             global buy_amt
             buy_amt = int(int(amount) / float(curr_price)) * float(curr_price)
-            # timestamp = int(current_quote[3])
 
-            response_msg = "Buying stock for " + str(message['stock_id']) + ":" + str(curr_price)
-        # Update the buy list or somehow overwrite the old values in DB
+            # We need to include the timestamp to know if it is still valid after 60 seconds
+            timestamp = int(current_quote[3])
+
+            # Need to keep track of timestamp in DB for each user
+
+            # Update the buy list or somehow overwrite the old values in DB
+
+            response_msg = "Placed an order to Buy " + str(message['stock_sym']) + ":" + str(curr_price)
 
         else:
             response_msg = "Not enough funds in user account to purchase stock"
@@ -103,6 +109,23 @@ def logic(message):
 
     elif message['command'] == 'COMMIT_BUY':
         print(message['user'])
+        # #Compare time with timestamp
+        # buy_queue = database.select_query('timestamp, amount, stock_sym')
+        # if buy_queue['timestamp']:
+        #     if curr_time() - 60000 <= int(buy_queue['timestamp']):
+        #         # update with the most recent amount and stock symbol
+        #         amount = buy_queue['amount']
+        #         stock_sym = buy_queue['stock_sym']
+        #
+        #         # update the DB using the new amount from above
+        #         database.update_query('user, amount')
+        #
+        #     else:
+        #         response_msg = "Time is greater than 60s. Commit buy cancelled."
+        #
+        # else:
+        #     response_msg = "No buy order pending. Cancelled COMMIT BUY."
+        # return response_msg
 
     elif message['command'] == 'CANCEL_BUY':
         # print(message['user'])
@@ -112,9 +135,22 @@ def logic(message):
 
     elif message['command'] == 'SELL':
         print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
+        # # Error checking the amount want to be sold is valid
+        # if amount > 0:
+        #     # Check the user's records.
+        #     if database.select_query(''):
+        #         # Sell the amount by updating the DB
+        #         database.update('')
+        #     else:
+        #         response_msg = "Insufficent stock owned"
+        # else:
+        #     response_msg = "Tried to sell less than 0 shares"
+        #
+        # return response_msg
 
     elif message['command'] == 'COMMIT_SELL':
         print(message['user'])
+        # Pretty much the same as COMMIT_BUY
 
     elif message['command'] == 'CANCEL_SELL':
         # print(message['user'])
@@ -142,6 +178,8 @@ def logic(message):
     else:
         print('problem')
 
+def curr_time():
+    return int(time.time() * 1000)
 
 def format_money(money):
     # return str(int(money)) + '.' + "{:02d}".format(int(money % 10000))
@@ -155,9 +193,9 @@ def get_quote(message):
 
     test = str(message['stock_sym'] + ',' + message['user']) + '\n'
     print(test)
-    quoteserverSocket.send(str(message['stock_sym'] + ',' + message['user']) + '\n')
+    quoteserverSocket.send((str(message['stock_sym'] + ',' + message['user']) + '\n').encode())
     print('sent symbol and user to quote server')
-    reply = quoteserverSocket.recv(1024)
+    reply = quoteserverSocket.recv(1024).decode()
     # reply_dict = {'quote': None, 'sym': None, 'userid': None, 'timestamp': None, 'cryptokey': None}
     # split_reply = reply.split(',')
     # reply[0]
@@ -174,9 +212,6 @@ transactionserverSocket.listen(5)
 # Keep sending if there are more commands
 while True:
     print('Ready to serve...')
-
-    # Make a socket for the quoteserver
-    # quoteserverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # Make a socket for the database
     databaseSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
