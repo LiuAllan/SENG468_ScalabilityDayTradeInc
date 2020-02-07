@@ -19,12 +19,13 @@ def createDB():
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
     finally:
+	
         if conn is not None:
             conn.close()
             print('Database connection closed.')
 
 def addTables():
-    file = open("daytrade.sql", "r")
+    file = open("daytrading.sql", "r")
     conn = None
     
     try:
@@ -32,9 +33,9 @@ def addTables():
         conn = psycopg2.connect("dbname=daytradedb user=seng468tracker password=SENG$^*")
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         cur = conn.cursor()
-        for line in file:
-            print(line)
-            cur.execute(line) 
+        
+        cur.execute(file.read())
+		
         cur.close()
         file.close()
     #need to close some open readers
@@ -44,12 +45,21 @@ def addTables():
         if conn is not None:
             conn.close()
             print('Database connection closed.')
+			
+def changeFund(user, funds):
+    return None
+	
+def changeFund(user, stock, sock_price):
+    return None
+
 
 
 def connect():
     createDB()
     addTables()
+
     
+
     f = open("log.txt", "w")
 	
     """ Connect to the PostgreSQL database server """
