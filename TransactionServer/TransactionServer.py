@@ -34,8 +34,8 @@
 # from flask import Flask
 import socket
 import ast
-import pickle
 import time
+from database.database import Database
 
 # app = Flask(__name__)
 
@@ -43,11 +43,6 @@ import time
 transactionserverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # command, user=None, stock_sym=None, amount=None, filename=None
-usr_funds = 0.00
-buy_amt = []
-sell_amt = []
-
-
 def logic(message):
     # this fixes the bug when comparing "amount < 0"
     amount = message.get('amount')
@@ -62,15 +57,21 @@ def logic(message):
         if message['amount'] is None:
             response_msg = "No input for Amount"
             # need to audit the error here
-        elif (amount) < 0: # remove the float on the lab machines and run with python
+        elif amount < 0:
             response_msg = "Attempted to add negative currency"
-            # need to audit the error
-
+            # need to audit the error here
         else:
-            # need to update the user's bank balance in DB by adding the amount
-            global usr_funds
+            # select the user
+
+            # if user doesnt exist create the user
+            # get the current funds of the user
+            usr_funds = database.selectFund(message['user'])
+
             usr_funds += float(format_money(amount))
             print('user funds is:', usr_funds)
+
+            # update the Database with the newly added funds
+            database.changeFund(message['user'], usr_funds)
             response_msg = "Added $%s to %s's account." % (format_money(amount), message['user'])
             # need to audit the transaction here
         return response_msg
@@ -86,19 +87,19 @@ def logic(message):
     elif message['command'] == 'BUY':
         # print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
         #First, check the user balance if they have enough money
-        if usr_funds >= amount:
+        if database.selectFund(message['user']) >= amount:
             current_quote = get_quote(message)
             curr_price = current_quote[0]
-            # need to convert since amount has no decimals
-            global buy_amt
-            buy_amt = int(int(amount) / float(curr_price)) * float(curr_price)
+
+            # calculate the amount user can buy with their funds. int(int(amount) / float(curr_price)) == amountOfStock
+            amountOfStock = int(int(amount) / float(curr_price))
+            buy_amt = amountOfStock * float(curr_price)
 
             # We need to include the timestamp to know if it is still valid after 60 seconds
             timestamp = int(current_quote[3])
 
-            # Need to keep track of timestamp in DB for each user
-
-            # Update the buy list or somehow overwrite the old values in DB
+            # set pending buy to latest values of buy and update with timestamp
+            database.Pending(message['user'], BUY, message['stock_sym'], amountOfStock, buy_amt, timestamp)
 
             response_msg = "Placed an order to Buy " + str(message['stock_sym']) + ":" + str(curr_price)
 
@@ -108,24 +109,27 @@ def logic(message):
         return response_msg
 
     elif message['command'] == 'COMMIT_BUY':
-        print(message['user'])
-        # #Compare time with timestamp
-        # buy_queue = database.select_query('timestamp, amount, stock_sym')
-        # if buy_queue['timestamp']:
-        #     if curr_time() - 60000 <= int(buy_queue['timestamp']):
-        #         # update with the most recent amount and stock symbol
-        #         amount = buy_queue['amount']
-        #         stock_sym = buy_queue['stock_sym']
-        #
-        #         # update the DB using the new amount from above
-        #         database.update_query('user, amount')
-        #
-        #     else:
-        #         response_msg = "Time is greater than 60s. Commit buy cancelled."
-        #
-        # else:
-        #     response_msg = "No buy order pending. Cancelled COMMIT BUY."
-        # return response_msg
+        # print(message['user'])
+        #Compare time with timestamp
+        buy_queue = database.PendingList('timestamp, amount, stock_sym')
+        if buy_queue['timestamp']:
+            if curr_time() - 60000 <= int(buy_queue['timestamp']):
+                # update with the most recent amount and stock symbol
+                amount = buy_queue['funds'] - buy_queue['buy_amt']
+                stock_sym = buy_queue['stock_sym']
+
+                # update the DB using the new amount from above
+                database.changeFund(message['user'], amount)
+
+                # create or update the stock for the user
+                stock = database.Pending
+
+            else:
+                response_msg = "Time is greater than 60s. Commit buy cancelled."
+
+        else:
+            response_msg = "No buy order pending. Cancelled COMMIT BUY."
+        return response_msg
 
     elif message['command'] == 'CANCEL_BUY':
         # print(message['user'])
@@ -161,6 +165,8 @@ def logic(message):
 
     elif message['command'] == 'SET_BUY_AMOUNT':
         print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
+        # Need to check the user's balance'
+
     elif message['command'] == 'SET_BUY_TRIGGER':
         print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
     elif message['command'] == 'CANCEL_SET_BUY':
@@ -217,6 +223,9 @@ while True:
 
     # accept returns a pair of client socket and address
     connectionSocket, addr = transactionserverSocket.accept()
+
+    # Initialize Database
+    db = Database()
 
     # message from web server
     # ast.literal_eval converts string to dictionary
