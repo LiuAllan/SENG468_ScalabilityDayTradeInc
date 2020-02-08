@@ -42,6 +42,9 @@ from database import Database
 # Make a socket for the transaction server
 transactionserverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+# Initialize Database
+db = Database()
+
 # command, user=None, stock_sym=None, amount=None, filename=None
 def logic(message):
     # this fixes the bug when comparing "amount < 0"
@@ -54,32 +57,34 @@ def logic(message):
 
 
     if message['command'] == 'ADD':
-        if message['amount'] is None:
-            response_msg = "No input for Amount"
-            # need to audit the error here
-        elif amount < 0:
-            response_msg = "Attempted to add negative currency"
-            # need to audit the error here
-        else:
-            # select the user
-            check_user = db.selectUsers(message['user'])
-            print(check_user)
+         response_msg = "hi"
+         return response_msg
+#        if message['amount'] is None:
+#            response_msg = "No input for Amount"
+#            # need to audit the error here
+#        elif amount < 0:
+#            response_msg = "Attempted to add negative currency"
+#            # need to audit the error here
+#        else:
+#            # select the user
+#            check_user = db.selectUsers(message['user'])
+#            print(check_user)
 
-            # if user doesnt exist create the user
-            if check_user == None:
-                usr_funds = db.changeUsers(message['user'], amount)
-            else:
-                # get the current funds of the user
-                usr_funds = db.selectUsers(message['users'])[1] # assuming the next item in the list in amount
+#            # if user doesnt exist create the user
+#            if check_user == None:
+#                usr_funds = db.changeUsers(message['user'], amount)
+#            else:
+#                # get the current funds of the user
+#                usr_funds = db.selectUsers(message['users'])[1]
 
-                usr_funds += float(format_money(amount))
-                print('user funds is:', usr_funds)
+#                usr_funds += float(format_money(amount))
+#                print('user funds is:', usr_funds)
 
-            # update the Database with the newly added funds
-            db.changeUsers(message['user'], usr_funds)
-            response_msg = "Added $%s to %s's account." % (format_money(amount), message['user'])
-            # need to audit the transaction here
-        return response_msg
+#            # update the Database with the newly added funds
+#            db.changeUsers(message['user'], usr_funds)
+#            response_msg = "Added $%s to %s's account." % (format_money(amount), message['user'])
+#            # need to audit the transaction here
+#        return response_msg
 
     elif message['command'] == 'QUOTE':
         current_quote = get_quote(message)
@@ -92,19 +97,21 @@ def logic(message):
     elif message['command'] == 'BUY':
         # print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
         #First, check the user balance if they have enough money
-        if database.selectFund(message['user']) >= amount:
+        if db.selectUsers(message['user'])[1] >= amount:
             current_quote = get_quote(message)
             curr_price = current_quote[0]
 
-            # calculate the amount user can buy with their funds. int(int(amount) / float(curr_price)) == amountOfStock
+            # calculate the amount user can buy with their funds.
             amountOfStock = int(int(amount) / float(curr_price))
             buy_amt = amountOfStock * float(curr_price)
+
+            remaining_amt = selectUsers(message['user'][1]) - buy_amt
 
             # We need to include the timestamp to know if it is still valid after 60 seconds
             timestamp = int(current_quote[3])
 
             # set pending buy to latest values of buy and update with timestamp
-            database.Pending(message['user'], BUY, message['stock_sym'], amountOfStock, buy_amt, timestamp)
+            db.addPending(message['user'], BUY, message['stock_sym'], amountOfStock, remaining_amt, timestamp)
 
             response_msg = "Placed an order to Buy " + str(message['stock_sym']) + ":" + str(curr_price)
 
@@ -228,9 +235,6 @@ while True:
 
     # accept returns a pair of client socket and address
     connectionSocket, addr = transactionserverSocket.accept()
-
-    # Initialize Database
-    db = Database()
 
     # message from web server
     # ast.literal_eval converts string to dictionary
