@@ -64,20 +64,21 @@ def logic(message):
             # select the user
             check_user = db.selectUsers(message['user'])
             print(check_user)
+
             # if user doesnt exist create the user
             if check_user == None:
-                db.changeUser(message['user'], amount)
+                usr_funds = db.changeUsers(message['user'], amount)
             else:
                 # get the current funds of the user
-                usr_funds = db.changeUser(message['user'], amount)
+                usr_funds = db.selectUsers(message['users'])[1] # assuming the next item in the list in amount
 
                 usr_funds += float(format_money(amount))
                 print('user funds is:', usr_funds)
 
-                # update the Database with the newly added funds
-                db.changeUser(message['user'], usr_funds)
-                response_msg = "Added $%s to %s's account." % (format_money(amount), message['user'])
-                # need to audit the transaction here
+            # update the Database with the newly added funds
+            db.changeUsers(message['user'], usr_funds)
+            response_msg = "Added $%s to %s's account." % (format_money(amount), message['user'])
+            # need to audit the transaction here
         return response_msg
 
     elif message['command'] == 'QUOTE':
