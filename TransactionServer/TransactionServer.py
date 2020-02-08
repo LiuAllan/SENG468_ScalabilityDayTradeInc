@@ -57,34 +57,34 @@ def logic(message):
 
 
     if message['command'] == 'ADD':
-         response_msg = "hi"
-         return response_msg
-#        if message['amount'] is None:
-#            response_msg = "No input for Amount"
-#            # need to audit the error here
-#        elif amount < 0:
-#            response_msg = "Attempted to add negative currency"
-#            # need to audit the error here
-#        else:
-#            # select the user
-#            check_user = db.selectUsers(message['user'])
-#            print(check_user)
+#         response_msg = "hi"
+#         return response_msg
+        if message['amount'] is None:
+            response_msg = "No input for Amount"
+            # need to audit the error here
+        elif amount < 0:
+            response_msg = "Attempted to add negative currency"
+            # need to audit the error here
+        else:
+            # select the user
+            check_user = db.selectUsers(message['user'])
+            print(check_user)
 
-#            # if user doesnt exist create the user
-#            if check_user == None:
-#                usr_funds = db.changeUsers(message['user'], amount)
-#            else:
-#                # get the current funds of the user
-#                usr_funds = db.selectUsers(message['users'])[1]
+            # if user doesnt exist create the user
+            if check_user == None:
+                usr_funds = db.changeUsers(message['user'], amount)[1]
+            else:
+                # get the current funds of the user
+                usr_funds = db.selectUsers(message['users'])[1]
 
-#                usr_funds += float(format_money(amount))
-#                print('user funds is:', usr_funds)
+                usr_funds += float(format_money(amount))
+                print('user funds is:', usr_funds)
 
-#            # update the Database with the newly added funds
-#            db.changeUsers(message['user'], usr_funds)
-#            response_msg = "Added $%s to %s's account." % (format_money(amount), message['user'])
-#            # need to audit the transaction here
-#        return response_msg
+            # update the Database with the newly added funds
+            db.changeUsers(message['user'], usr_funds)
+            response_msg = "Added $%s to %s's account." % (format_money(amount), message['user'])
+            # need to audit the transaction here
+        return response_msg
 
     elif message['command'] == 'QUOTE':
         current_quote = get_quote(message)
@@ -105,13 +105,13 @@ def logic(message):
             amountOfStock = int(int(amount) / float(curr_price))
             buy_amt = amountOfStock * float(curr_price)
 
-            remaining_amt = selectUsers(message['user'][1]) - buy_amt
+            remaining_amt = db.selectUsers(message['user'])[1] - buy_amt
 
             # We need to include the timestamp to know if it is still valid after 60 seconds
             timestamp = int(current_quote[3])
 
             # set pending buy to latest values of buy and update with timestamp
-            db.addPending(message['user'], BUY, message['stock_sym'], amountOfStock, remaining_amt, timestamp)
+            db.addPending(message['user'], message['command'], message['stock_sym'], amountOfStock, remaining_amt, timestamp)
 
             response_msg = "Placed an order to Buy " + str(message['stock_sym']) + ":" + str(curr_price)
 
@@ -123,18 +123,19 @@ def logic(message):
     elif message['command'] == 'COMMIT_BUY':
         # print(message['user'])
         #Compare time with timestamp
-        buy_queue = database.PendingList('timestamp, amount, stock_sym')
-        if buy_queue['timestamp']:
-            if curr_time() - 60000 <= int(buy_queue['timestamp']):
+        buy_queue = db.selectPending(message['user'], message['command'], message['stock_sym'])
+        print(buy_queue)
+        if buy_queue[5]:
+            if curr_time() - 60000 <= int(buy_queue[5]):
                 # update with the most recent amount and stock symbol
-                amount = buy_queue['funds'] - buy_queue['buy_amt']
-                stock_sym = buy_queue['stock_sym']
+                amount = buy_queue[4]
+                stock_sym = buy_queue[2]
 
                 # update the DB using the new amount from above
-                database.changeFund(message['user'], amount)
+                db.changeUsers(message['user'], amount)
 
                 # create or update the stock for the user
-                stock = database.Pending
+                stock = db.Pending
 
             else:
                 response_msg = "Time is greater than 60s. Commit buy cancelled."
