@@ -5,7 +5,7 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 class Database:
 
     def __init__(self):
-        # connecting to generic user
+        # Connecting to generic user
         self.conn = psycopg2.connect("dbname=postgres host=localhost user=postgres password=postgres")
         self.cur = self.conn.cursor()
         file = open("DBInit.sql", "r")
@@ -17,7 +17,7 @@ class Database:
         file.close()
         self.cur.close()
         self.conn.close()
-        # connecting to seng468 user
+        # Connecting to seng468 user
         self.conn = psycopg2.connect("dbname=daytrading user=seng468 password='seng468'")
         self.cur = self.conn.cursor()
         file = open("daytrading.sql", "r")
@@ -85,7 +85,7 @@ class Database:
 
 
     # Input: the user_id and funds
-    # Output: good
+    # Output: The record that is created/updated
     # The record containing user_id has it's funds changed to input funds
     # If no record is found creates a record with user_id and funds
     def changeUsers(self, user_id, funds):
@@ -93,24 +93,25 @@ class Database:
         INSERT INTO Users
         Values
         (
-          '{}', --user_id
-          {}    --funds
+          '{0}', --user_id
+          {1}    --funds
         )
         On Conflict (user_id)
         DO
         Update
-        SET funds = {};
-        """.format(user_id, funds, funds))
+        SET funds = {1}
+        Returning *;
+        """.format(user_id, funds))
 
-        #result =self.cur.fetchone()
+        result = self.cur.fetchone()
 
         #print('good')
 
-        return 'good'
+        return result
 
 
     # Input: the user_id, stock_sym, and amount
-    # Output: good
+    # Output: The record that is created/updated
     # The record containing user_id and stock_sym has it's amount changed to input amount
     # If no record is found creates a record with user_id, stock_sym and amount
     def changeAccount(self, user_id, stock_sym, amount):
@@ -118,25 +119,26 @@ class Database:
         INSERT INTO Account
         Values
         (
-          '{}', --user_id
-          '{}', --stock_sym
-          {}    --amount
+          '{0}', --user_id
+          '{1}', --stock_sym
+          {2}    --amount
         )
         On Conflict (user_id, stock_sym)
         DO
         Update
-        SET amount = {};
-        """.format(user_id, stock_sym, amount, amount))
+        SET amount = {2}
+        Returning *;
+        """.format(user_id, stock_sym, amount))
 
-        #result =self.cur.fetchone()
+        result = self.cur.fetchone()
 
         #print('good')
 
-        return 'good'
+        return result
 
 
     # Input: the user_id, command, stock_sym, amount, funds, and timeadded
-    # Output: good
+    # Output: The record that is created
     # Inserts a new record with user_id, command, stock_sym, amount, funds, and timeadded
     def addPending(self, user_id, command, stock_sym, amount, funds, timeadded):
         self.cur.execute("""
@@ -149,18 +151,19 @@ class Database:
           {},   --amount
           {},   --funds
           {}    --timeadded
-        );
+        )
+        Returning *;
         """.format(user_id, command, stock_sym, amount, funds, timeadded))
 
-        #result =self.cur.fetchone()
+        result =self.cur.fetchone()
 
         #print('good')
 
-        return 'good'
+        return result
 
 
     # Input: the user_id, command, stock_sym
-    # Output: bad
+    # Output: The record that is deleted
     # Delete the record with user_id, command, stock_symwith highest timeadded (most recent)
     def removePending(self, user_id, command, stock_sym):
         self.cur.execute("""
@@ -173,11 +176,75 @@ class Database:
         Where user_id = '{}' and command = '{}' and stock_sym = '{}'
         Order By timeadded desc
         limit 1
-        );
+        )
+        Returning *;
         """.format(user_id, command, stock_sym))
 
-        #result = self.cur.fetchone()
+        result = self.cur.fetchone()
 
         #print(result)
 
-        return 'bad'
+        return result
+
+
+    # Input: the user_id, command, timeadded, [stock_sym, amount, funds, and cryptokey]
+    # Output: The record that is created
+    # Inserts a new record with user_id, command, [stock_sym, amount, funds, and timeadded]
+    # Puts Null if not given
+    def addAudit(self, user_id, command, timeadded, stock_sym = None, amount = None, funds = None, cryptokey = None):
+        self.cur.execute("""
+        INSERT INTO Audit
+        Values
+        (
+          Default, --incrementing id
+          '{}',     --user_id
+          '{}',     --command
+          {},       --timeadded
+          {},       --stock_sym
+          {},       --amount
+          {},       --funds
+          {}        --cryptokey
+        )
+        Returning *;
+        """.format
+        (
+            user_id,
+            command,
+            timeadded,
+            ("'" + stock_sym + "'") if stock_sym else 'Null',
+            amount if amount else 'Null',
+            funds if funds else 'Null',
+            ("'" + cryptokey + "'") if cryptokey else 'Null')
+        )
+        # The format looks weird to accommodate None -> Null
+
+        result =self.cur.fetchone()
+
+        #print('good')
+
+        return result
+
+
+    # Input: [user_id]
+    # Output: A list of all records [containing user_id]
+    # If no records exist returns an empty list
+    def dumpAudit(self, user_id = None):
+        if user_id:
+            self.cur.execute("""
+            Select *
+            From Audit
+            Where user_id = '{}'
+            Order By audit_id;
+            """.format(user_id))
+        else:
+            self.cur.execute("""
+            Select *
+            From Audit
+            Order By audit_id;
+            """)
+
+        result = self.cur.fetchall()
+
+        #print(result)
+
+        return result
