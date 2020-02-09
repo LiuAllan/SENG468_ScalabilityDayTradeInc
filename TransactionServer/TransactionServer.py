@@ -156,19 +156,19 @@ def logic(message):
         return response_msg
 
     elif message['command'] == 'SELL':
-        print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
-        # # Error checking the amount want to be sold is valid
-        # if amount > 0:
-        #     # Check the user's records.
-        #     if database.select_query(''):
-        #         # Sell the amount by updating the DB
-        #         database.update('')
-        #     else:
-        #         response_msg = "Insufficent stock owned"
-        # else:
-        #     response_msg = "Tried to sell less than 0 shares"
-        #
-        # return response_msg
+        # print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
+        # Error checking the amount want to be sold is valid
+        if amount > 0:
+            # Check the user's records.
+            if database.select_query(''):
+                # Sell the amount by updating the DB
+                database.update('')
+            else:
+                response_msg = "Insufficent stock owned"
+        else:
+            response_msg = "Tried to sell less than 0 shares"
+
+        return response_msg
 
     elif message['command'] == 'COMMIT_SELL':
         print(message['user'])

@@ -68,14 +68,14 @@ class Database:
     # Input: the user_id, command, and the stock_sym of the record
     # Output: a tuple containing (user_id, command, stock_sym, amount, funds, timeadded) with highest timeadded (most recent)
     # If no record is found returns None
-    def selectPending(self, user_id, command, stock_sym):
+    def selectPending(self, user_id, command):
         self.cur.execute("""
 	    Select *
 	    From pending
-	    Where user_id = '{}' and command = '{}' and stock_sym = '{}'
+	    Where user_id = '{}' and command = '{}'
 	    Order By timeadded desc
 	    limit 1;
-	    """.format(user_id, command, stock_sym))
+	    """.format(user_id, command))
 
         result = self.cur.fetchone()
 
