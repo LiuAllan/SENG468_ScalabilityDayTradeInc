@@ -176,7 +176,7 @@ def logic(message):
 
     elif message['command'] == 'CANCEL_SELL':
         # print(message['user'])
-        db.removePending(message['user'], message['command'], message['stock_sym'])
+        db.removePending(message['user'], 'SELL')
         response_msg = "Cancelled Sell"
         return response_msg
 
