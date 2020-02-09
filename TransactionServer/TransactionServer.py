@@ -123,7 +123,7 @@ def logic(message):
     elif message['command'] == 'COMMIT_BUY':
         # print(message['user'])
         #Compare time with timestamp
-        buy_queue = db.selectPending(message['user'], message['command'], message['stock_sym'])
+        buy_queue = db.selectPending(message['user'], 'BUY')
         print(buy_queue)
         if buy_queue[5]:
             if curr_time() - 60000 <= int(buy_queue[5]):
@@ -139,7 +139,7 @@ def logic(message):
                 db.changeAccount(message['user'], stock_sym, amountOfStock)
 
                 # Delete the pending records
-                db.removePending(message['user'], message['command'], message['stock_sym'])
+                db.removePending(message['user'], 'BUY')
                 response_msg = "Commited most recent BUY order"
 
             else:
@@ -151,24 +151,24 @@ def logic(message):
 
     elif message['command'] == 'CANCEL_BUY':
         # print(message['user'])
-        db.removePending(message['user'], message['command'], message['stock_sym'])
+        db.removePending(message['user'], 'BUY')
         response_msg = "Cancelled Buy"
         return response_msg
 
     elif message['command'] == 'SELL':
-        # print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
-        # Error checking the amount want to be sold is valid
-        if amount > 0:
-            # Check the user's records.
-            if database.select_query(''):
-                # Sell the amount by updating the DB
-                database.update('')
-            else:
-                response_msg = "Insufficent stock owned"
-        else:
-            response_msg = "Tried to sell less than 0 shares"
-
-        return response_msg
+        print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
+        # # Error checking the amount want to be sold is valid
+        # if amount > 0:
+        #     # Check the user's records.
+        #     if database.select_query(''):
+        #         # Sell the amount by updating the DB
+        #         database.update('')
+        #     else:
+        #         response_msg = "Insufficent stock owned"
+        # else:
+        #     response_msg = "Tried to sell less than 0 shares"
+        #
+        # return response_msg
 
     elif message['command'] == 'COMMIT_SELL':
         print(message['user'])
