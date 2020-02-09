@@ -130,12 +130,17 @@ def logic(message):
                 # update with the most recent amount and stock symbol
                 amount = buy_queue[4]
                 stock_sym = buy_queue[2]
+                amountOfStock = buy_queue[3]
 
                 # update the DB using the new amount from above
                 db.changeUsers(message['user'], amount)
 
                 # create or update the stock for the user
-                stock = db.Pending
+                db.changeAccount(message['user'], stock_sym, amountOfStock)
+
+                # Delete the pending records
+                db.removePending(message['user'], message['command'], message['stock_sym'])
+                response_msg = "Commited most recent BUY order"
 
             else:
                 response_msg = "Time is greater than 60s. Commit buy cancelled."
@@ -146,7 +151,7 @@ def logic(message):
 
     elif message['command'] == 'CANCEL_BUY':
         # print(message['user'])
-        buy_amt = []
+        db.removePending(message['user'], message['command'], message['stock_sym'])
         response_msg = "Cancelled Buy"
         return response_msg
 
@@ -171,8 +176,7 @@ def logic(message):
 
     elif message['command'] == 'CANCEL_SELL':
         # print(message['user'])
-        global sell_amt
-        sell_amt = []
+        db.removePending(message['user'], message['command'], message['stock_sym'])
         response_msg = "Cancelled Sell"
         return response_msg
 
