@@ -65,7 +65,7 @@ class Database:
         return result
 
 
-    # Input: the user_id, command, and the stock_sym of the record
+    # Input: the user_id, command, and of the record
     # Output: a tuple containing (user_id, command, stock_sym, amount, funds, timeadded) with highest timeadded (most recent)
     # If no record is found returns None
     def selectPending(self, user_id, command):
@@ -162,10 +162,10 @@ class Database:
         return result
 
 
-    # Input: the user_id, command, stock_sym
+    # Input: the user_id, command
     # Output: The record that is deleted
     # Delete the record with user_id, command, stock_symwith highest timeadded (most recent)
-    def removePending(self, user_id, command, stock_sym):
+    def removePending(self, user_id, command):
         self.cur.execute("""
         Delete
         From Pending
@@ -173,12 +173,12 @@ class Database:
         In (
         Select ctid
         From Pending
-        Where user_id = '{}' and command = '{}' and stock_sym = '{}'
+        Where user_id = '{}' and command = '{}'
         Order By timeadded desc
         limit 1
         )
         Returning *;
-        """.format(user_id, command, stock_sym))
+        """.format(user_id, command))
 
         result = self.cur.fetchone()
 
