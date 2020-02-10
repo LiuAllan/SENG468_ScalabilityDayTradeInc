@@ -100,10 +100,10 @@ def main():
     #contents = [re.sub("\[[0-9]+] ", "", item.strip()).split(",") for item in file.readlines()]
     #file.close()
     #print(contents)
-    usr_funds = 0.00
+    #usr_funds = 0.00
 
-    buy_amount = 0.00
-    sell_amount = 0.00
+    #buy_amount = 0.00
+    #sell_amount = 0.00
 
     log = ""
     if(line[0] == "ADD"):

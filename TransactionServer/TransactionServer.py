@@ -237,6 +237,9 @@ def logic(message):
 
     elif message['command'] == 'SET_BUY_TRIGGER':
         print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
+        # if SET_BUY_AMOUNT command was executed for this user and stock symbol
+		if db.isSetBuy(message['user'], message['stock_sym']):
+            #set trigger
     elif message['command'] == 'CANCEL_SET_BUY':
         print(message['user'] + ', ' + message['stock_sym'])
     elif message['command'] == 'SET_SELL_AMOUNT':
@@ -246,7 +249,15 @@ def logic(message):
     elif message['command'] == 'CANCEL_SET_SELL':
         print(message['user'] + ', ' + message['stock_sym'])
     elif message['command'] == 'DUMPLOG':
-        print(message['user'] + ', ' + message.get('filename', ''))
+        if len(message) == 1:
+            print('invalid command')
+        elif len(message) == 2:
+            #security feature for users accessing other user logs
+            print('user access denied')
+        else:
+            print(message['user'] + ', ' + message.get('filename', ''))
+            audit_dump = db.dumpAudit(message['user'])
+            #send audit_dump to audit.py, possibly via socket
     else:
         print('problem')
 

@@ -30,7 +30,7 @@ def addTables():
     
     try:
         print('Adding tables...')
-        conn = psycopg2.connect("dbname=daytradedb user=seng468tracker password=SENG$^*")
+        conn = psycopg2.connect("dbname=daytrading user=seng468 password=seng468")
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         cur = conn.cursor()
         
