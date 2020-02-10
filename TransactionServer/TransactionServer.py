@@ -216,8 +216,24 @@ def logic(message):
         return response_msg
 
     elif message['command'] == 'SET_BUY_AMOUNT':
-        print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
+        # print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
         # Need to check the user's balance'
+        funds = db.selectUsers(message['user'])[1]
+        if funds >= amount:
+            # ??? selectTrigger: input(amount, trigger, buy, user, stock_sym). output(user, stock_sym)
+            if db.selectTrigger():
+                response_msg = "Trigger is already set for stock: " + str(message['stock_sym'])
+            else:
+                # Update the user funds by subtracting the amount from funds
+                db.changeUsers(message['user'], funds - message['amount'])
+
+            # Set up the trigger by adding a record in the DB
+            db.addTrigger()
+            response_msg = "BUY TRIGGER amount is SET"
+        else:
+            response_msg = "Not enough funds in user account to SET TRIGGER"
+
+        return response_msg
 
     elif message['command'] == 'SET_BUY_TRIGGER':
         print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
