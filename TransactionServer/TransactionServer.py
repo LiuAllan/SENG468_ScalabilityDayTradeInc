@@ -75,7 +75,7 @@ def logic(message):
                 usr_funds = db.changeUsers(message['user'], amount)[1]
             else:
                 # get the current funds of the user
-                usr_funds = db.selectUsers(message['users'])[1]
+                usr_funds = db.selectUsers(message['user'])[1]
 
                 usr_funds += float(format_money(amount))
                 print('user funds is:', usr_funds)
@@ -124,7 +124,7 @@ def logic(message):
         # print(message['user'])
         #Compare time with timestamp
         buy_queue = db.selectPending(message['user'], 'BUY')
-        if buy_queue[5]:
+        if buy_queue is not None:
             if curr_time() - 60000 <= int(buy_queue[5]):
                 # update with the most recent amount and stock symbol
                 amount = buy_queue[4]
@@ -184,7 +184,8 @@ def logic(message):
 
         #Compare time with timestamp
         sell_queue = db.selectPending(message['user'], 'SELL')
-        if sell_queue[5]:
+        print(sell_queue)
+        if sell_queue is not None:
             if curr_time() - 60000 <= int(sell_queue[5]):
                 # update with the most recent amount and stock symbol
                 amount = sell_queue[4]
@@ -230,8 +231,6 @@ def logic(message):
         print(message['user'] + ', ' + message['stock_sym'])
     elif message['command'] == 'DUMPLOG':
         print(message['user'] + ', ' + message.get('filename', ''))
-    elif message['command'] == 'CANCEL_SET_SELL':
-        print(message['user'] + ', ' + message['stock_sym'])
     else:
         print('problem')
 
