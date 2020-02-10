@@ -124,7 +124,6 @@ def logic(message):
         # print(message['user'])
         #Compare time with timestamp
         buy_queue = db.selectPending(message['user'], 'BUY')
-        print(buy_queue)
         if buy_queue[5]:
             if curr_time() - 60000 <= int(buy_queue[5]):
                 # update with the most recent amount and stock symbol
@@ -156,23 +155,58 @@ def logic(message):
         return response_msg
 
     elif message['command'] == 'SELL':
-        print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
-        # # Error checking the amount want to be sold is valid
-        # if amount > 0:
-        #     # Check the user's records.
-        #     if database.select_query(''):
-        #         # Sell the amount by updating the DB
-        #         database.update('')
-        #     else:
-        #         response_msg = "Insufficent stock owned"
-        # else:
-        #     response_msg = "Tried to sell less than 0 shares"
-        #
-        # return response_msg
+        # print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
+        # Error checking the amount want to be sold is valid
+        if amount > 0:
+            # Check the user's records.
+            if db.selectUsers(message['user'])[1] >= amount:
+                current_quote = get_quote(message)
+                curr_price = current_quote[0]
+
+                # Calcualtes exactly how much I am able to sell
+                amountOfStock = int(int(amount) / float(curr_price))
+                sell_amt = amountOfStock * float(curr_price)
+                remaining_amt = db.selectUsers(message['user'])[1] + sell_amt
+                timestamp = int(current_quote[3])
+
+                # Sell the amount by updating the DB
+                db.addPending(message['user'], message['command'], message['stock_sym'], amountOfStock, remaining_amt, timestamp)
+                response_msg = "Placed an order to Sell " + str(message['stock_sym']) + ":" + str(curr_price)
+            else:
+                response_msg = "Insufficent stock owned"
+        else:
+            response_msg = "Tried to sell less than 0 shares"
+
+        return response_msg
 
     elif message['command'] == 'COMMIT_SELL':
-        print(message['user'])
-        # Pretty much the same as COMMIT_BUY
+        # print(message['user'])
+
+        #Compare time with timestamp
+        sell_queue = db.selectPending(message['user'], 'SELL')
+        if sell_queue[5]:
+            if curr_time() - 60000 <= int(sell_queue[5]):
+                # update with the most recent amount and stock symbol
+                amount = sell_queue[4]
+                stock_sym = sell_queue[2]
+                amountOfStock = sell_queue[3]
+
+                # update the DB using the new amount from above
+                db.changeUsers(message['user'], amount)
+
+                # create or update the stock for the user
+                db.changeAccount(message['user'], stock_sym, amountOfStock)
+
+                # Delete the pending records
+                db.removePending(message['user'], 'SELL')
+                response_msg = "Commited most recent SELL order"
+
+            else:
+                response_msg = "Time is greater than 60s. Commit buy cancelled."
+
+        else:
+            response_msg = "No sell order pending. Cancelled COMMIT SELL."
+        return response_msg
 
     elif message['command'] == 'CANCEL_SELL':
         # print(message['user'])
