@@ -220,16 +220,16 @@ def logic(message):
         # Need to check the user's balance'
         funds = db.selectUsers(message['user'])[1]
         if funds >= amount:
-            # ??? selectTrigger: input(amount, trigger, buy, user, stock_sym). output(user, stock_sym)
-            if db.selectTrigger():
+            # ??? selectTrigger:  input (user, stock_sym) output(amount, trigger, buy, user, stock_sym).
+            if db.selectTrigger(): # Trigger record exists
                 response_msg = "Trigger is already set for stock: " + str(message['stock_sym'])
             else:
                 # Update the user funds by subtracting the amount from funds
                 db.changeUsers(message['user'], funds - message['amount'])
 
-            # Set up the trigger by adding a record in the DB
-            db.addTrigger()
-            response_msg = "BUY TRIGGER amount is SET"
+                # ??? Set up the trigger by adding a record in the DB with its Trigger amount to add
+                db.addTrigger()
+                response_msg = "BUY TRIGGER amount is SET"
         else:
             response_msg = "Not enough funds in user account to SET TRIGGER"
 
@@ -237,17 +237,33 @@ def logic(message):
 
     elif message['command'] == 'SET_BUY_TRIGGER':
         print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
-        # if SET_BUY_AMOUNT command was executed for this user and stock symbol
-		if db.isSetBuy(message['user'], message['stock_sym']):
-            #set trigger
+        # # if SET_BUY_AMOUNT command was executed for this user and stock symbol
+		# if db.isSetBuy(message['user'], message['stock_sym']):
+         #    #set trigger
+
     elif message['command'] == 'CANCEL_SET_BUY':
-        print(message['user'] + ', ' + message['stock_sym'])
+        # print(message['user'] + ', ' + message['stock_sym'])
+        triggerAmount = db.selectTrigger(message['user'], message['stock_sym'])[0] # amount here is the Trigger amount. Not funds.
+        funds = db.selectUsers(message['user'])[1]
+        if not amount:
+            response_msg = "There are no Trigger for this stock"
+        else:
+            # Add money back to the user funds
+            db.changeUsers(message['user'], funds + triggerAmount)
+            # Delete the Trigger record
+            db.removeTrigger()
+            response_msg = "Cancelled BUY TRIGGER"
+        return response_msg
+
     elif message['command'] == 'SET_SELL_AMOUNT':
         print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
+
     elif message['command'] == 'SET_SELL_TRIGGER':
         print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
+
     elif message['command'] == 'CANCEL_SET_SELL':
         print(message['user'] + ', ' + message['stock_sym'])
+
     elif message['command'] == 'DUMPLOG':
         if len(message) == 1:
             print('invalid command')
