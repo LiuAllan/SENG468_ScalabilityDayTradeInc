@@ -53,12 +53,10 @@ def logic(message):
     # remove the decimals and convert to an int
     if amount:
         amount = int(float(amount) * 100)
-    print(amount)
+    print("amount is seen as ", amount)
 
 
     if message['command'] == 'ADD':
-#         response_msg = "hi"
-#         return response_msg
         if message['amount'] is None:
             response_msg = "No input for Amount"
             # need to audit the error here
@@ -76,8 +74,7 @@ def logic(message):
             else:
                 # get the current funds of the user
                 usr_funds = db.selectUsers(message['user'])[1]
-
-                usr_funds += float(format_money(amount))
+                usr_funds = float(format_money(usr_funds)) + float(format_money(amount))
                 print('user funds is:', usr_funds)
 
             # update the Database with the newly added funds
@@ -221,15 +218,15 @@ def logic(message):
         funds = db.selectUsers(message['user'])[1]
         if funds >= amount:
             # selectTrigger:  input (user, stock_sym) output(amount, trigger, buy, user, stock_sym).
-            if db.selectTrigger(message['user'], 'BUY', message['stock_sym']) is not None:
+            if db.selectTrigger(message['user'], message['command'], message['stock_sym']) is not None:
                 response_msg = "Trigger is already set for stock: " + str(message['stock_sym'])
             else:
                 # Update the user funds by subtracting the amount from funds
-                new_funds = funds - message['amount']
+                new_funds = float(format_money(funds)) - float(format_money(amount))
                 db.changeUsers(message['user'], new_funds)
 
                 # ??? Set up the trigger by adding a record in the DB with its Trigger amount to add
-                db.addTrigger(message['user'], 'BUY', message['stock_sym'], message['amount'], new_funds)
+                db.addTrigger(message['user'], message['command'], message['stock_sym'], amount, new_funds, curr_time())
                 response_msg = "BUY TRIGGER amount is SET"
         else:
             response_msg = "Not enough funds in user account to SET TRIGGER"
@@ -250,22 +247,25 @@ def logic(message):
         else:
             response_msg = "SET_BUY_AMOUNT has not been executed for this command to run"
         return response_msg
+
+
     elif message['command'] == 'CANCEL_SET_BUY':
         # print(message['user'] + ', ' + message['stock_sym'])
-        triggerAmount = db.selectTrigger(message['user'], 'BUY', message['stock_sym'])[3] # amount here is the Trigger amount. Not funds.
+        triggerAmount = db.selectTrigger(message['user'], 'SET_BUY_AMOUNT', message['stock_sym']) # amount here is the Trigger amount. Not funds.
         funds = db.selectUsers(message['user'])[1]
-        if not amount:
+        if triggerAmount is None:
             response_msg = "There are no Trigger for this stock"
         else:
             # Add money back to the user funds
-            db.changeUsers(message['user'], funds + triggerAmount)
+            db.changeUsers(message['user'], float(format_money(funds)) + float(format_money(triggerAmount[3])))
             # Delete the Trigger record
             db.removeTrigger(message['user'], message['command'], message['stock_sym'])
             response_msg = "Cancelled BUY TRIGGER"
         return response_msg
 
+
     elif message['command'] == 'SET_SELL_AMOUNT':
-        print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
+#        print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
         funds = db.selectUsers(message['user'])[1]
         stock_fund = db.selectAccount(message['user'], message['stock_sym'])[2]
         if amount <= stock_fund:
