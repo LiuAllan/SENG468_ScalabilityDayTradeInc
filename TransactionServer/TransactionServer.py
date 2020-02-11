@@ -74,7 +74,7 @@ def logic(message):
             else:
                 # get the current funds of the user
                 usr_funds = db.selectUsers(message['user'])[1]
-                usr_funds = float(format_money(usr_funds)) + float(format_money(amount))
+                usr_funds +=  amount
                 print('user funds is:', usr_funds)
 
             # update the Database with the newly added funds
@@ -96,11 +96,11 @@ def logic(message):
         #First, check the user balance if they have enough money
         if db.selectUsers(message['user'])[1] >= amount:
             current_quote = get_quote(message)
-            curr_price = current_quote[0]
+            curr_price = int(float(current_quote[0]) * 100)
 
             # calculate the amount user can buy with their funds.
-            amountOfStock = int(int(amount) / float(curr_price))
-            buy_amt = amountOfStock * float(curr_price)
+            amountOfStock = amount // curr_price
+            buy_amt = amountOfStock * curr_price
 
             remaining_amt = db.selectUsers(message['user'])[1] - buy_amt
 
@@ -136,7 +136,7 @@ def logic(message):
 
                 # Delete the pending records
                 db.removePending(message['user'], 'BUY')
-                response_msg = "Commited most recent BUY order"
+                response_msg = "Committed most recent BUY order"
 
             else:
                 response_msg = "Time is greater than 60s. Commit buy cancelled."
@@ -156,21 +156,24 @@ def logic(message):
         # Error checking the amount want to be sold is valid
         if amount > 0:
             # Check the user's records.
-            if db.selectUsers(message['user'])[1] >= amount:
                 current_quote = get_quote(message)
-                curr_price = current_quote[0]
+                curr_price = int(float(current_quote[0]) * 100)
 
-                # Calcualtes exactly how much I am able to sell
-                amountOfStock = int(int(amount) / float(curr_price))
-                sell_amt = amountOfStock * float(curr_price)
-                remaining_amt = db.selectUsers(message['user'])[1] + sell_amt
-                timestamp = int(current_quote[3])
+                amountOfStock = amount // curr_price
 
-                # Sell the amount by updating the DB
-                db.addPending(message['user'], message['command'], message['stock_sym'], amountOfStock, remaining_amt, timestamp)
-                response_msg = "Placed an order to Sell " + str(message['stock_sym']) + ":" + str(curr_price)
-            else:
-                response_msg = "Insufficent stock owned"
+                if db.selectAccount(message['user'], message['stock_sym'])[1] >= amountOfStock:
+                    # Calcualtes exactly how much I am able to sell
+                    sell_amt = amountOfStock * curr_price
+                    remaining_amt = db.selectUsers(message['user'])[1] + sell_amt
+
+                    timestamp = int(current_quote[3])
+
+                    # Sell the amount by updating the DB
+                    db.addPending(message['user'], message['command'], message['stock_sym'], amountOfStock, remaining_amt, timestamp)
+                    response_msg = "Placed an order to Sell " + str(message['stock_sym']) + ":" + format_money(curr_price)
+
+                else:
+                    response_msg = "Insufficent stock owned"
         else:
             response_msg = "Tried to sell less than 0 shares"
 
@@ -197,7 +200,7 @@ def logic(message):
 
                 # Delete the pending records
                 db.removePending(message['user'], 'SELL')
-                response_msg = "Commited most recent SELL order"
+                response_msg = "Committed most recent SELL order"
 
             else:
                 response_msg = "Time is greater than 60s. Commit buy cancelled."
@@ -222,7 +225,7 @@ def logic(message):
                 response_msg = "Trigger is already set for stock: " + str(message['stock_sym'])
             else:
                 # Update the user funds by subtracting the amount from funds
-                new_funds = float(format_money(funds)) - float(format_money(amount))
+                new_funds = funds - amount
                 db.changeUsers(message['user'], new_funds)
 
                 # ??? Set up the trigger by adding a record in the DB with its Trigger amount to add
@@ -257,9 +260,10 @@ def logic(message):
             response_msg = "There are no Trigger for this stock"
         else:
             # Add money back to the user funds
-            db.changeUsers(message['user'], float(format_money(funds)) + float(format_money(triggerAmount[3])))
+            db.changeUsers(message['user'], funds + triggerAmount[3])
             # Delete the Trigger record
-            db.removeTrigger(message['user'], message['command'], message['stock_sym'])
+            db.removeTrigger(message['user'], 'SET_BUY_AMOUNT', message['stock_sym'])
+            db.removeTrigger(message['user'], 'SET_BUY_TRIGGER', message['stock_sym'])
             response_msg = "Cancelled BUY TRIGGER"
         return response_msg
 
@@ -288,14 +292,14 @@ def logic(message):
             # amount is the price that the stock price needs to be less than or equal to before executing a buy
             new_funds = funds + message['amount']
             db.changeUsers(message['user'], new_funds)
-			db.addTrigger(message['user'], message['command'], message['stock_sym'], message['amount'], funds, curr_time())
+            db.addTrigger(message['user'], message['command'], message['stock_sym'], message['amount'], funds, curr_time())
             response_msg = "Sell trigger is set."
         else:
             response_msg = "SET_SELL_AMOUNT has not been executed for this command to run"
         return response_msg
 
     elif message['command'] == 'CANCEL_SET_SELL':
-        print(message['user'] + ', ' + message['stock_sym'])
+        # print(message['user'] + ', ' + message['stock_sym'])
         triggerAmount = db.selectTrigger(message['user'], 'SELL', message['stock_sym'])[3] # amount here is the Trigger amount. Not funds.
         funds = db.selectUsers(message['user'])[1]
         if not amount:
