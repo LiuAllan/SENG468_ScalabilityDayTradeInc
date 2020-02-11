@@ -236,11 +236,19 @@ def logic(message):
         return response_msg
 
     elif message['command'] == 'SET_BUY_TRIGGER':
-        print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
-        # # if SET_BUY_AMOUNT command was executed for this user and stock symbol
-		# if db.isSetBuy(message['user'], message['stock_sym']):
-         #    #set trigger
-
+        #print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
+        funds = db.selectUsers(message['user'])[1]
+        # if SET_BUY_AMOUNT command was executed for this user and stock symbol
+        if db.selectTrigger(message['user'], 'SET_BUY_AMOUNT', message['stock_sym']):
+            # if trigger was already set, remove it and add updated trigger
+            if db.selectTrigger(message['user'], message['command'], message['stock_sym']):
+                db.removeTrigger(message['user'], message['command'], message['stock_sym'])
+            # amount is the price that the stock price needs to be less than or equal to before executing a buy
+            db.addTrigger(message['user'], message['command'], message['stock_sym'], message['amount'], funds, curr_time())
+            response_msg = "Trigger is set"
+        else:
+            response_msg = "SET_BUY_AMOUNT has not been executed for this command to run"
+        return response_msg
     elif message['command'] == 'CANCEL_SET_BUY':
         # print(message['user'] + ', ' + message['stock_sym'])
         triggerAmount = db.selectTrigger(message['user'], message['stock_sym'])[0] # amount here is the Trigger amount. Not funds.
