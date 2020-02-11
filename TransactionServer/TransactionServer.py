@@ -259,7 +259,8 @@ def logic(message):
             # Add money back to the user funds
             db.changeUsers(message['user'], float(format_money(funds)) + float(format_money(triggerAmount[3])))
             # Delete the Trigger record
-            db.removeTrigger(message['user'], message['command'], message['stock_sym'])
+            db.removeTrigger(message['user'], 'SET_BUY_AMOUNT', message['stock_sym'])
+            db.removeTrigger(message['user'], 'SET_BUY_TRIGGER', message['stock_sym'])
             response_msg = "Cancelled BUY TRIGGER"
         return response_msg
 
@@ -288,7 +289,7 @@ def logic(message):
             # amount is the price that the stock price needs to be less than or equal to before executing a buy
             new_funds = funds + message['amount']
             db.changeUsers(message['user'], new_funds)
-			db.addTrigger(message['user'], message['command'], message['stock_sym'], message['amount'], funds, curr_time())
+            db.addTrigger(message['user'], message['command'], message['stock_sym'], message['amount'], funds, curr_time())
             response_msg = "Sell trigger is set."
         else:
             response_msg = "SET_SELL_AMOUNT has not been executed for this command to run"
@@ -296,13 +297,13 @@ def logic(message):
 
     elif message['command'] == 'CANCEL_SET_SELL':
         print(message['user'] + ', ' + message['stock_sym'])
-        triggerAmount = db.selectTrigger(message['user'], 'SELL', message['stock_sym'])[3] # amount here is the Trigger amount. Not funds.
+        triggerAmount = db.selectTrigger(message['user'], 'SET_SELL_TRIGGER', message['stock_sym'])[3] # amount here is the Trigger amount. Not funds.
         funds = db.selectUsers(message['user'])[1]
         if not amount:
             response_msg = "There are no Trigger for this stock"
         else:
             # Add money back to the user funds
-            db.changeUsers(message['user'], funds - triggerAmount)
+            db.changeUsers(message['user'], float(format_money(funds)) + float(format_money(triggerAmount[3])))
             # Delete the Trigger record
             db.removeTrigger(message['user'], message['command'], message['stock_sym'])
             response_msg = "Cancelled SELL TRIGGER"
