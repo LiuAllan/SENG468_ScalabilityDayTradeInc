@@ -273,7 +273,7 @@ def logic(message):
                 db.removeTrigger(message['user'], message['command'], message['stock_sym'])
             # amount is the price that the stock price needs to be less than or equal to before executing a buy
             db.addTrigger(message['user'], message['command'], message['stock_sym'], message['amount'], funds, curr_time())
-            response_msg = "Sell trigger is set"
+            response_msg = "Sell trigger is set."
         else:
             response_msg = "SET_SELL_AMOUNT has not been executed for this command to run"
         return response_msg
