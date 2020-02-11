@@ -270,30 +270,56 @@ def logic(message):
 
     elif message['command'] == 'SET_SELL_AMOUNT':
 #        print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
-        funds = db.selectUsers(message['user'])[1]
-        stock_fund = db.selectAccount(message['user'], message['stock_sym'])[2]
-        if amount <= stock_fund:
-            if db.selectTrigger(message['user'], message['command'], message['stock_sym']):
-                db.removeTrigger(message['user'], message['command'], message['stock_sym'])
-            db.addTrigger(message['user'], message['command'], message['stock_sym'], message['amount'], funds, curr_time())
-        else:
-            response_msg = "Insufficient stock funds to set sell amount"
+        # funds = db.selectUsers(message['user'])[1]
+        # stock_fund = db.selectAccount(message['user'], message['stock_sym'])[2]
+        # if amount <= stock_fund:
+        #     if db.selectTrigger(message['user'], message['command'], message['stock_sym']):
+        #         db.removeTrigger(message['user'], message['command'], message['stock_sym'])
+        #     db.addTrigger(message['user'], message['command'], message['stock_sym'], message['amount'], funds, curr_time())
+        # else:
+        #     response_msg = "Insufficient stock funds to set sell amount"
+        #
+        # return response_msg
+        stock_amount = db.selectAccount(message['user'], message['stock_sym'])[2]
+        if db.selectTrigger(message['user'], message['command'], message['stock_sym']):
+            response_msg = "Trigger is already set for stock: " + str(message['stock_sym'])
+        db.addTrigger(message['user'], message['command'], message['stock_sym'], message['amount'], 0, curr_time())
 
         return response_msg
 
     elif message['command'] == 'SET_SELL_TRIGGER':
         print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
-        funds = db.selectUsers(message['user'])[1]
+        # funds = db.selectUsers(message['user'])[1]
+        # # if SET_SELL_AMOUNT command was executed for this user and stock symbol
+        # if db.selectTrigger(message['user'], 'SET_SELL_AMOUNT', message['stock_sym']):
+        #     # if trigger was already set, remove it and add updated trigger
+        #     if db.selectTrigger(message['user'], message['command'], message['stock_sym']):
+        #         db.removeTrigger(message['user'], message['command'], message['stock_sym'])
+        #     # amount is the price that the stock price needs to be less than or equal to before executing a buy
+        #     new_funds = funds + message['amount']
+        #     db.changeUsers(message['user'], new_funds)
+        #     db.addTrigger(message['user'], message['command'], message['stock_sym'], message['amount'], funds, curr_time())
+        #     response_msg = "Sell trigger is set."
+        # else:
+        #     response_msg = "SET_SELL_AMOUNT has not been executed for this command to run"
+        # return response_msg
+
         # if SET_SELL_AMOUNT command was executed for this user and stock symbol
         if db.selectTrigger(message['user'], 'SET_SELL_AMOUNT', message['stock_sym']):
             # if trigger was already set, remove it and add updated trigger
             if db.selectTrigger(message['user'], message['command'], message['stock_sym']):
                 db.removeTrigger(message['user'], message['command'], message['stock_sym'])
-            # amount is the price that the stock price needs to be less than or equal to before executing a buy
-            new_funds = funds + message['amount']
-            db.changeUsers(message['user'], new_funds)
-            db.addTrigger(message['user'], message['command'], message['stock_sym'], message['amount'], funds, curr_time())
-            response_msg = "Sell trigger is set."
+            # amount is the price that the stock price needs to be greater than or equal to before executing a sell
+            sell_price = int(float(message['amount'])*100)
+            amountOfStock = amount // sell_price
+            stocks_owned = db.selectAccount(message['user'], message['stock_sym'])[2]
+
+            if stocks_owned >= amountOfStock:
+                db.changeAccount(message['user'], message['stock_sym'], stocks_owned - amountOfStock)
+                db.addTrigger(message['user'], message['command'], message['stock_sym'], message['amount'], amountOfStock, curr_time())
+                response_msg = "Sell trigger is set."
+            else:
+                response_msg = "Insufficient stock to set sell amount"
         else:
             response_msg = "SET_SELL_AMOUNT has not been executed for this command to run"
         return response_msg
@@ -301,13 +327,26 @@ def logic(message):
     elif message['command'] == 'CANCEL_SET_SELL':
 
 #         print(message['user'] + ', ' + message['stock_sym'])
-        triggerAmount = db.selectTrigger(message['user'], 'SET_SELL_TRIGGER', message['stock_sym'])[3]
-        funds = db.selectUsers(message['user'])[1]
-        if not amount:
+        # triggerAmount = db.selectTrigger(message['user'], 'SET_SELL_TRIGGER', message['stock_sym'])[3]
+        # funds = db.selectUsers(message['user'])[1]
+        # if not amount:
+        #     response_msg = "There are no Trigger for this stock"
+        # else:
+        #     # Add money back to the user funds
+        #     db.changeUsers(message['user'], funds + triggerAmount[3])
+        #     # Delete the Trigger record
+        #     db.removeTrigger(message['user'], 'SET_SELL_TRIGGER', message['stock_sym'])
+        #     db.removeTrigger(message['user'], 'SET_SELL_AMOUNT', message['stock_sym'])
+        #     response_msg = "Cancelled SELL TRIGGER"
+        # return response_msg
+
+        triggerAmount = db.selectTrigger(message['user'], 'SET_SELL_TRIGGER', message['stock_sym'])[4]
+        stocks_owned = db.selectAccount(message['user'], message['stock_sym'])[2]
+        if not triggerAmount:
             response_msg = "There are no Trigger for this stock"
         else:
-            # Add money back to the user funds
-            db.changeUsers(message['user'], funds + triggerAmount[3])
+            # Add srocks back to the user account
+            db.changeAccount(message['user'], message['stock_sym'], stocks_owned + triggerAmount)
             # Delete the Trigger record
             db.removeTrigger(message['user'], 'SET_SELL_TRIGGER', message['stock_sym'])
             db.removeTrigger(message['user'], 'SET_SELL_AMOUNT', message['stock_sym'])
