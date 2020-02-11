@@ -267,27 +267,50 @@ def logic(message):
     elif message['command'] == 'SET_SELL_AMOUNT':
         print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
         funds = db.selectUsers(message['user'])[1]
+        stock_fund = db.selectAccount(message['user'], message['stock_sym'])[2]
+        if amount <= stock_fund:
+            if db.selectTrigger(message['user'], message['command'], message['stock_sym']):
+                db.removeTrigger(message['user'], message['command'], message['stock_sym'])
+            db.addTrigger(message['user'], message['command'], message['stock_sym'], message['amount'], funds, curr_time())
+        else:
+            response_msg = "Insufficient stock funds to set sell amount"
+
+        return response_msg
+
+    elif message['command'] == 'SET_SELL_TRIGGER':
+        print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
+        funds = db.selectUsers(message['user'])[1]
         # if SET_SELL_AMOUNT command was executed for this user and stock symbol
         if db.selectTrigger(message['user'], 'SET_SELL_AMOUNT', message['stock_sym']):
             # if trigger was already set, remove it and add updated trigger
             if db.selectTrigger(message['user'], message['command'], message['stock_sym']):
                 db.removeTrigger(message['user'], message['command'], message['stock_sym'])
             # amount is the price that the stock price needs to be less than or equal to before executing a buy
-            db.addTrigger(message['user'], message['command'], message['stock_sym'], message['amount'], funds, curr_time())
+            new_funds = funds + message['amount']
+            db.changeUsers(message['user'], new_funds)
+			db.addTrigger(message['user'], message['command'], message['stock_sym'], message['amount'], funds, curr_time())
             response_msg = "Sell trigger is set."
         else:
             response_msg = "SET_SELL_AMOUNT has not been executed for this command to run"
         return response_msg
 
-    elif message['command'] == 'SET_SELL_TRIGGER':
-        print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
-
     elif message['command'] == 'CANCEL_SET_SELL':
         print(message['user'] + ', ' + message['stock_sym'])
+        triggerAmount = db.selectTrigger(message['user'], 'SELL', message['stock_sym'])[3] # amount here is the Trigger amount. Not funds.
+        funds = db.selectUsers(message['user'])[1]
+        if not amount:
+            response_msg = "There are no Trigger for this stock"
+        else:
+            # Add money back to the user funds
+            db.changeUsers(message['user'], funds - triggerAmount)
+            # Delete the Trigger record
+            db.removeTrigger(message['user'], message['command'], message['stock_sym'])
+            response_msg = "Cancelled SELL TRIGGER"
+        return response_msg
 
     elif message['command'] == 'DUMPLOG':
         if len(message) == 1:
-            print('invalid command')
+            print('Error in usage: DUMPLOG [userid]')
         elif len(message) == 2:
             #security feature for users accessing other user logs
             print('user access denied')
@@ -295,6 +318,8 @@ def logic(message):
             print(message['user'] + ', ' + message.get('filename', ''))
             audit_dump = db.dumpAudit(message['user'])
             #send audit_dump to audit.py, possibly via socket
+    elif message['command'] == 'DISPLAY_SUMMARY':
+        print('display summary for ' + message['user'])
     else:
         print('problem')
 
