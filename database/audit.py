@@ -3,76 +3,76 @@ import time
 import re
 import pickle
 
-def userCommand(cmd, usr, funds, server = 'CLT1', transnum = 1, t = time.time()):
+def userCommand(line):
     string = "    <userCommand>\n"
-    string += "        <timestamp>" + str(t) + "</timestamp>\n"
-    string += "        <server>" + str(server) + "</server>\n"
-    string += "        <transactionNum>" + str(transnum) + "<transactionNum>\n"
-    string += "        <command>" + str(cmd) + "</command>\n"
-    string += "        <username>" + str(usr) + "</username>\n"
-    string += "        <funds>" + str(funds) + "</funds>\n"
+    string += "        <timestamp>" + str(line['timestamp']) + "</timestamp>\n"
+    string += "        <server>" + line['server'] + "</server>\n"
+    string += "        <transactionNum>" + str(line['transaction_num']) + "<transactionNum>\n"
+    string += "        <command>" + line['command'] + "</command>\n"
+    string += "        <username>" + line['user'] + "</username>\n"
+    string += "        <funds>" + str(line['amount']) + "</funds>\n"
     string += "    </userCommand>\n"
     return string
 
-def quoteServer(usr, t = time.time(), server = 'CLT1', transnum = 1, qtime = time.time(), symbol = 'ABC', price = 1.00, key = '4rn94ng'):
+def quoteServer(line):
     string = "    <quoteServer>\n"
-    string += "        <timestamp>" + str(t) + "</timestamp>\n"
-    string += "        <server>" + str(server) + "</server>\n"
-    string += "        <transactionNum>" + str(transnum) + "<transactionNum>\n"
-    string += "        <quoteServerTime>" + str(qtime) + "</quoteServerTime>\n"
-    string += "        <username>" + str(usr) + "</username>\n"
-    string += "        <stockSymbol>" + str(symbol) + "</stockSymbol>\n"
-    string += "        <price>" + str(price) + "</price>\n"
-    string += "        <cryptokey>" + str(key) + "</cryptokey>\n"
+    string += "        <timestamp>" + str(line['timestamp']) + "</timestamp>\n"
+    string += "        <server>" + line['server'] + "</server>\n"
+    string += "        <transactionNum>" + str(line['transaction_num']) + "<transactionNum>\n"
+    string += "        <quoteServerTime>" + str(line['q_time']) + "</quoteServerTime>\n"
+    string += "        <username>" + line['user'] + "</username>\n"
+    string += "        <stockSymbol>" + line['stock_sym'] + "</stockSymbol>\n"
+    string += "        <price>" + line['quote_price'] + "</price>\n"
+    string += "        <cryptokey>" + line['crypto_key'] + "</cryptokey>\n"
     string += "    </quoteServer>\n"
     return string
 
-def accountTransaction(action, usr, funds, t = time.time(), server = 'CLT1', transnum = 1):
+def accountTransaction(line):
     string = "    <accountTransaction>\n"
-    string += "        <timestamp>" + str(t) + "</timestamp>\n"
-    string += "        <server>" + str(server) + "</server>\n"
-    string += "        <transactionNum>" + str(transnum) + "<transactionNum>\n"
-    string += "        <action>" + str(action) + "</action>\n"
-    string += "        <username>" + str(usr) + "</username>\n"
-    string += "        <funds>" + str(funds) + "</funds>\n"
+    string += "        <timestamp>" + str(line['timestamp']) + "</timestamp>\n"
+    string += "        <server>" + line['server'] + "</server>\n"
+    string += "        <transactionNum>" + str(line['transaction_num']) + "<transactionNum>\n"
+    string += "        <action>" + line['command'] + "</action>\n"
+    string += "        <username>" + line['user'] + "</username>\n"
+    string += "        <funds>" + str(line['amount']) + "</funds>\n"
     string += "    </accountTransaction>\n"
     return string
 
-def systemEvent(t, server, transnum, cmd, usr, symbol, funds):
+def systemEvent(line):
     string = "    <systemEvent>\n"
-    string += "        <timestamp>" + str(t) + "</timestamp>\n"
-    string += "        <server>" + str(server) + "</server>\n"
-    string += "        <transactionNum>" + str(transnum) + "<transactionNum>\n"
-    string += "        <command>" + str(cmd) + "</command>\n"
-    string += "        <username>" + str(usr) + "</username>\n"
-    string += "        <stockSymbol>" + str(symbol) + "</stockSymbol>\n"
-    string += "        <funds>" + str(funds) + "</funds>\n"
+    string += "        <timestamp>" + str(line['timestamp']) + "</timestamp>\n"
+    string += "        <server>" + line['server'] + "</server>\n"
+    string += "        <transactionNum>" + str(line['transaction_num']) + "<transactionNum>\n"
+    string += "        <command>" + line['command'] + "</command>\n"
+    string += "        <username>" + line['user'] + "</username>\n"
+    string += "        <stockSymbol>" + line['stock_sym'] + "</stockSymbol>\n"
+    string += "        <funds>" + str(line['funds']) + "</funds>\n"
     string += "    </systemEvent>\n"
     return string
 
-def errorEvent(t, server, transnum, cmd, usr, symbol, funds, msg):
+def errorEvent(line):
     string = "    <errorEvent>\n"
-    string += "        <timestamp>" + str(t) + "</timestamp>\n"
-    string += "        <server>" + str(server) + "</server>\n"
-    string += "        <transactionNum>" + str(transnum) + "<transactionNum>\n"
-    string += "        <command>" + str(cmd) + "</command>\n"
-    string += "        <username>" + str(usr) + "</username>\n"
-    string += "        <stockSymbol>" + str(symbol) + "</stockSymbol>\n"
-    string += "        <funds>" + str(funds) + "</funds>\n"
-    string += "        <errorMessage>" + str(msg) + "</errorMessage>\n"
+    string += "        <timestamp>" + str(line['timestamp']) + "</timestamp>\n"
+    string += "        <server>" + line['server'] + "</server>\n"
+    string += "        <transactionNum>" + str(line['transaction_num']) + "<transactionNum>\n"
+    string += "        <command>" + line['command'] + "</command>\n"
+    string += "        <username>" + line['user'] + "</username>\n"
+    string += "        <stockSymbol>" + line['stock_sym'] + "</stockSymbol>\n"
+    string += "        <funds>" + str(line['funds']) + "</funds>\n"
+    string += "        <errorMessage>" + line['error_msg'] + "</errorMessage>\n"
     string += "    </errorEvent>\n"
     return string
 
-def debugEvent(t, server, transnum, cmd, usr, symbol, funds, msg):
+def debugEvent(line):
     string = "    <debugEvent>\n"
-    string += "        <timestamp>" + str(t) + "</timestamp>\n"
-    string += "        <server>" + str(server) + "</server>\n"
-    string += "        <transactionNum>" + str(transnum) + "<transactionNum>\n"
-    string += "        <command>" + str(cmd) + "</command>\n"
-    string += "        <username>" + str(usr) + "</username>\n"
-    string += "        <stockSymbol>" + str(symbol) + "</stockSymbol>\n"
-    string += "        <funds>" + str(funds) + "</funds>\n"
-    string += "        <debugMessage>" + str(msg) + "</debugMessage>\n"
+    string += "        <timestamp>" + str(line['timestamp']) + "</timestamp>\n"
+    string += "        <server>" + line['server'] + "</server>\n"
+    string += "        <transactionNum>" + str(line['transaction_num']) + "<transactionNum>\n"
+    string += "        <command>" + line['command'] + "</command>\n"
+    string += "        <username>" + line['user'] + "</username>\n"
+    string += "        <stockSymbol>" + line['stock_sym'] + "</stockSymbol>\n"
+    string += "        <funds>" + str(line['funds']) + "</funds>\n"
+    string += "        <debugMessage>" + line['debug_msg'] + "</debugMessage>\n"
     string += "    </debugEvent>\n"
     return string
 
@@ -111,9 +111,8 @@ def redirect(line):
     log = ""
     if(line['command'] == "ADD"):
         print("ADD")
-        usr_funds += float(line[2])
-        log += userCommand(line[0], line[1], usr_funds)
-        log += accountTransaction(action = 'add', usr = line[1], funds = usr_funds)
+        log += userCommand(line)
+        log += accountTransaction(line)
     elif (line['command'] == "QUOTE"):
         print("QUOTE")
         log += quoteServer(usr = line[1])
@@ -179,7 +178,8 @@ def redirect(line):
         xml_file = open(line[1], "w")
         xml_file.write(log_string)
 
-    print(log_string)
+    #print(log_string)
+    print(log)
 	
 
 
