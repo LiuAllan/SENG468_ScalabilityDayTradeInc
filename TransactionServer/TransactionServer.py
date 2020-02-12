@@ -161,7 +161,7 @@ def logic(message):
 
                 amountOfStock = amount // curr_price
 
-                if db.selectAccount(message['user'], message['stock_sym'])[1] >= amountOfStock:
+                if db.selectAccount(message['user'], message['stock_sym'])[2] >= amountOfStock:
                     # Calcualtes exactly how much I am able to sell
                     sell_amt = amountOfStock * curr_price
                     remaining_amt = db.selectUsers(message['user'])[1] + sell_amt
@@ -300,7 +300,7 @@ def logic(message):
 
     elif message['command'] == 'CANCEL_SET_SELL':
 
-        # print(message['user'] + ', ' + message['stock_sym'])
+#         print(message['user'] + ', ' + message['stock_sym'])
         triggerAmount = db.selectTrigger(message['user'], 'SET_SELL_TRIGGER', message['stock_sym'])[3]
         funds = db.selectUsers(message['user'])[1]
         if not amount:
