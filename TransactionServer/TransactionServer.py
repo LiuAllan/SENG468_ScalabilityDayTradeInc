@@ -299,16 +299,18 @@ def logic(message):
         return response_msg
 
     elif message['command'] == 'CANCEL_SET_SELL':
+
         # print(message['user'] + ', ' + message['stock_sym'])
-        triggerAmount = db.selectTrigger(message['user'], 'SELL', message['stock_sym'])[3] # amount here is the Trigger amount. Not funds.
+        triggerAmount = db.selectTrigger(message['user'], 'SET_SELL_TRIGGER', message['stock_sym'])[3]
         funds = db.selectUsers(message['user'])[1]
         if not amount:
             response_msg = "There are no Trigger for this stock"
         else:
             # Add money back to the user funds
-            db.changeUsers(message['user'], funds - triggerAmount)
+            db.changeUsers(message['user'], funds + triggerAmount[3])
             # Delete the Trigger record
-            db.removeTrigger(message['user'], message['command'], message['stock_sym'])
+            db.removeTrigger(message['user'], 'SET_SELL_TRIGGER', message['stock_sym'])
+            db.removeTrigger(message['user'], 'SET_SELL_AMOUNT', message['stock_sym'])
             response_msg = "Cancelled SELL TRIGGER"
         return response_msg
 
