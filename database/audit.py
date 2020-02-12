@@ -89,7 +89,10 @@ def main():
         try:
             line = pickle.loads(c.recv(4096))
             print('line received is ', line)
-            c.send('info received!'.encode())
+            c.send('info received as type {}'.format(type(line)).encode())
+			
+            redirect(line)
+			
             c.close()
         except IOError as err:
             print(err)
@@ -104,77 +107,77 @@ def main():
 
     #buy_amount = 0.00
     #sell_amount = 0.00
-
+def redirect(line):
     log = ""
-    if(line[0] == "ADD"):
+    if(line['command'] == "ADD"):
         print("ADD")
         usr_funds += float(line[2])
         log += userCommand(line[0], line[1], usr_funds)
         log += accountTransaction(action = 'add', usr = line[1], funds = usr_funds)
-    elif (line[0] == "QUOTE"):
+    elif (line['command'] == "QUOTE"):
         print("QUOTE")
         log += quoteServer(usr = line[1])
-    elif (line[0] == "BUY"):
+    elif (line['command'] == "BUY"):
         print("BUY")
         buy_amount += float(line[3])
         #log += userCommand(line[0], line[1], usr_funds)
         #log += systemEvent()
         #log += quoteServer()
         #log += accountTransaction()
-    elif (line[0] == "COMMIT_BUY"):
+    elif (line['command'] == "COMMIT_BUY"):
         print("COMMIT_BUY")
         #log += userCommand(line[0], line[1], line[2])
         #log += systemEvent()
-    elif (line[0] == "CANCEL_BUY"):
+    elif (line['command'] == "CANCEL_BUY"):
         print("CANCEL_BUY")
         #log += userCommand()
         #log += systemEvent()
-    elif (line[0] == "SELL"):
+    elif (line['command'] == "SELL"):
         print("SELL")
         #log += userCommand(line[0], line[1], usr_funds)
         #log += systemEvent()
         #log += quoteServer()
         #log += accountTransaction()
-    elif (line[0] == "COMMIT_SELL"):
+    elif (line['command'] == "COMMIT_SELL"):
         print("COMMIT_SELL")
         #log += userCommand(line[0], line[1], line[2])
         #log += systemEvent()
-    elif (line[0] == "CANCEL_SELL"):
+    elif (line['command'] == "CANCEL_SELL"):
         print("CANCEL_SELL")
         #log += userCommand(line[0], line[1], line[2])
         #log += systemEvent()
-    elif (line[0] == "SET_BUY_AMOUNT"):
+    elif (line['command'] == "SET_BUY_AMOUNT"):
         print("SET_BUY_AMOUNT")
         #log += userCommand(line[0], line[1], line[2])
         #log += systemEvent()
-    elif (line[0] == "CANCEL_SET_BUY"):
+    elif (line['command'] == "CANCEL_SET_BUY"):
         print("CANCEL_SET_BUY")
         #log += userCommand(line[0], line[1], line[2])
         #log += systemEvent()
-    elif (line[0] == "SET_BUY_TRIGGER"):
+    elif (line['command'] == "SET_BUY_TRIGGER"):
         print("SET_BUY_TRIGGER")
         #log += userCommand(line[0], line[1], line[2])
         #log += systemEvent()
-    elif (line[0] == "SET_SELL_AMOUNT"):
+    elif (line['command'] == "SET_SELL_AMOUNT"):
         print("SET_SELL_AMOUNT")
         #log += userCommand(line[0], line[1], line[2])
         #log += systemEvent()
-    elif (line[0] == "SET_SELL_TRIGGER"):
+    elif (line['command'] == "SET_SELL_TRIGGER"):
         print("SET_SELL_TRIGGER")
         #log += userCommand(line[0], line[1], line[2])
         #log += systemEvent()
-    elif (line[0] == "CANCEL_SET_SELL"):
+    elif (line['command'] == "CANCEL_SET_SELL"):
         print("CANCEL_SET_SELL")
         #log += userCommand(line[0], line[1], line[2])
         #log += systemEvent()
-    elif (line[0] == "DUMPLOG"):
+    elif (line['command'] == "DISPLAY_SUMMARY"):
+        print("DISPLAY_SUMMARY")
+        #log += userCommand(line[0], line[1], line[2])
+    elif (line['command'] == "DUMPLOG"):
         print("DUMPLOG")
         log_string = '<?xml version="1.0"?>\n<log>\n\n' + log + '\n</log>'
         xml_file = open(line[1], "w")
         xml_file.write(log_string)
-    elif (line[0] == "DISPLAY_SUMMARY"):
-        print("DISPLAY_SUMMARY")
-        #log += userCommand(line[0], line[1], line[2])
 
     print(log_string)
 	
