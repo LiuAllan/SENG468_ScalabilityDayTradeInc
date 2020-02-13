@@ -363,10 +363,37 @@ def logic(message):
             print(message['user'] + ', ' + message.get('filename', ''))
             audit_dump = db.dumpAudit(message['user'])
             #send audit_dump to audit.py, possibly via socket
+
     elif message['command'] == 'DISPLAY_SUMMARY':
-        print('display summary for ' + message['user'])
+        # print('display summary for ' + message['user'])
+        userBalance = db.selectUsers(message['user'])[1]
+        stocks = db.selectAccount()[2] # number of stocks or all of the stock symbols in a list?
+        pendingTransaction = db.selectPending() # select stock_sym, funds, timestamp
+        triggers = db.selectTrigger() # select stock_sym, funds
+
+        userBalance = str(int(userBalance / 100)) + '.' + "{:02d}".format(int(userBalance % 100))
+        response_msg = "Summary for %s <br> Current Balance: $%s <br>" % (message['user'], userBalance)
+
+        # Format the stocks, pending transactions, and triggers
+        if stocks:
+            for stock in stocks:
+                funds = format_money()
+                response_msg = response_msg + "Stock[%s]: $%s <br>" % (stock[0], funds)
+
+        if pendingTransaction:
+            for trans in pendingTransaction:
+                funds = format_money()
+                response_msg =
+
+        if triggers:
+            for trigger in triggers:
+                funds = format_money()
+                response_msg =
+
+        return response_msg
+
     else:
-        print('problem')
+        print('Invalid Command.')
 
 def curr_time():
     return int(time.time() * 1000)
