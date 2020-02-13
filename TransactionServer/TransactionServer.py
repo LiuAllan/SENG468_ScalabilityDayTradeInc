@@ -366,29 +366,32 @@ def logic(message):
 
     elif message['command'] == 'DISPLAY_SUMMARY':
         # print('display summary for ' + message['user'])
-        userBalance = db.selectUsers(message['user'])[1]
-        stocks = db.selectAccount()[2] # number of stocks or all of the stock symbols in a list?
-        pendingTransaction = db.selectPending() # select stock_sym, funds, timestamp
-        triggers = db.selectTrigger() # select stock_sym, funds
+        # userBalance = db.selectUsers(message['user'])[1]
+        # stocks = db.selectAccount()[2] # number of stocks or all of the stock symbols in a list?
+        # pendingTransaction = db.selectPending() # select stock_sym, funds, timestamp
+        # triggers = db.selectTrigger() # select stock_sym, funds
 
-        userBalance = str(int(userBalance / 100)) + '.' + "{:02d}".format(int(userBalance % 100))
+        userBalance, stocks, transactionHistory, triggers = db.displaySummary(message['user'])
+
+        userBalance = str(int(userBalance[1] / 100)) + '.' + "{:02d}".format(int(userBalance[1] % 100))
         response_msg = "Summary for %s <br> Current Balance: $%s <br>" % (message['user'], userBalance)
 
         # Format the stocks, pending transactions, and triggers
+
         if stocks:
             for stock in stocks:
-                funds = format_money()
-                response_msg = response_msg + "Stock[%s]: $%s <br>" % (stock[0], funds)
+                response_msg = response_msg + "Stock = %s: %s <br>" % (stock[1], stock[2])
 
-        if pendingTransaction:
-            for trans in pendingTransaction:
-                funds = format_money()
-                response_msg =
+        if transactionHistory:
+            for trans in transactionHistory:
+                funds = str(int(trans[5] / 100)) + '.' + "{:02d}".format(int(trans[5] % 100))
+                response_msg = response_msg + "Pending %s, Stock = %s: %s  Timestamp %s   Current Balance: $%s <br>" % (trans[1], trans[3], trans[4], trans[2], funds)
 
         if triggers:
             for trigger in triggers:
-                funds = format_money()
-                response_msg =
+                stockCost =
+                triggerAmount = str(int(trigger[3] / 100)) + '.' + "{:02d}".format(int(trigger[3] % 100))
+                response_msg = response_msg + "Trigger %s, Stock = %s: $%s  Trigger Amount $%s <br>" % (trigger[1], trigger[2], stockCost, triggerAmount)
 
         return response_msg
 
