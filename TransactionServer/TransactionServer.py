@@ -80,7 +80,8 @@ def logic(message):
             # update the Database with the newly added funds
             db.changeUsers(message['user'], usr_funds)
             response_msg = "Added $%s to %s's account." % (format_money(amount), message['user'])
-            # need to audit the transaction here
+            # audit the transaction
+            db.addAudit(message['user'], message['command'], curr_time(), None, None, usr_funds, None)
         return response_msg
 
     elif message['command'] == 'QUOTE':
@@ -134,15 +135,19 @@ def logic(message):
                 # create or update the stock for the user
                 db.changeAccount(message['user'], stock_sym, amountOfStock)
 
+                db.addAudit(message['user'], message['command'], curr_time(), stock_sym, amountOfStock, amount, None)
+
                 # Delete the pending records
                 db.removePending(message['user'], 'BUY')
                 response_msg = "Committed most recent BUY order"
 
             else:
                 response_msg = "Time is greater than 60s. Commit buy cancelled."
+                # audit the error here
 
         else:
             response_msg = "No buy order pending. Cancelled COMMIT BUY."
+            # audit the error here
         return response_msg
 
     elif message['command'] == 'CANCEL_BUY':
@@ -174,8 +179,10 @@ def logic(message):
 
                 else:
                     response_msg = "Insufficent stock owned"
+                    # audit error here
         else:
             response_msg = "Tried to sell less than 0 shares"
+            # audit error here
 
         return response_msg
 
@@ -198,15 +205,20 @@ def logic(message):
                 # create or update the stock for the user
                 db.changeAccount(message['user'], stock_sym, amountOfStock)
 
+                db.addAudit(message['user'], message['command'], curr_time(), stock_sym, amountOfStock, amount, None)
+
                 # Delete the pending records
                 db.removePending(message['user'], 'SELL')
                 response_msg = "Committed most recent SELL order"
 
             else:
                 response_msg = "Time is greater than 60s. Commit buy cancelled."
+                # audit error here
 
         else:
             response_msg = "No sell order pending. Cancelled COMMIT SELL."
+            # audit error here
+
         return response_msg
 
     elif message['command'] == 'CANCEL_SELL':
@@ -223,16 +235,22 @@ def logic(message):
             # selectTrigger:  input (user, stock_sym) output(amount, trigger, buy, user, stock_sym).
             if db.selectTrigger(message['user'], message['command'], message['stock_sym']) is not None:
                 response_msg = "Trigger is already set for stock: " + str(message['stock_sym'])
+
+                # audit the error here
+
             else:
                 # Update the user funds by subtracting the amount from funds
                 new_funds = funds - amount
                 db.changeUsers(message['user'], new_funds)
 
-                # ??? Set up the trigger by adding a record in the DB with its Trigger amount to add
+                # Set up the trigger by adding a record in the DB with its Trigger amount to add
                 db.addTrigger(message['user'], message['command'], message['stock_sym'], amount, new_funds, curr_time())
+
+                db.addAudit(message['user'], message['command'], curr_time(), message['stock_sym'], None, new_funds, None)
                 response_msg = "BUY TRIGGER amount is SET"
         else:
             response_msg = "Not enough funds in user account to SET TRIGGER"
+            # audit error here
 
         return response_msg
 
@@ -246,9 +264,12 @@ def logic(message):
                 db.removeTrigger(message['user'], message['command'], message['stock_sym'])
             # amount is the price that the stock price needs to be less than or equal to before executing a buy
             db.addTrigger(message['user'], message['command'], message['stock_sym'], message['amount'], funds, curr_time())
+            db.addAudit(message['user'], message['command'], curr_time(), message['stock_sym'], None, funds, None)
             response_msg = "Buy trigger is set"
         else:
             response_msg = "SET_BUY_AMOUNT has not been executed for this command to run"
+            # audit the error
+
         return response_msg
 
 
@@ -258,12 +279,15 @@ def logic(message):
         funds = db.selectUsers(message['user'])[1]
         if triggerAmount is None:
             response_msg = "There are no Trigger for this stock"
+            # audit the error
+
         else:
             # Add money back to the user funds
             db.changeUsers(message['user'], funds + triggerAmount[3])
             # Delete the Trigger record
             db.removeTrigger(message['user'], 'SET_BUY_AMOUNT', message['stock_sym'])
             db.removeTrigger(message['user'], 'SET_BUY_TRIGGER', message['stock_sym'])
+            db.addAudit(message['user'], message['command'], curr_time(), message['stock_sym'], None, funds + triggerAmount[3], None)
             response_msg = "Cancelled BUY TRIGGER"
         return response_msg
 
@@ -320,8 +344,12 @@ def logic(message):
                 response_msg = "Sell trigger is set."
             else:
                 response_msg = "Insufficient stock to set sell amount"
+                # audit error here
+
         else:
             response_msg = "SET_SELL_AMOUNT has not been executed for this command to run"
+            # audit the error
+
         return response_msg
 
     elif message['command'] == 'CANCEL_SET_SELL':
@@ -344,8 +372,10 @@ def logic(message):
         stocks_owned = db.selectAccount(message['user'], message['stock_sym'])[2]
         if not triggerAmount:
             response_msg = "There are no Trigger for this stock"
+            # audit the error
+
         else:
-            # Add srocks back to the user account
+            # Add stocks back to the user account
             db.changeAccount(message['user'], message['stock_sym'], stocks_owned + triggerAmount)
             # Delete the Trigger record
             db.removeTrigger(message['user'], 'SET_SELL_TRIGGER', message['stock_sym'])
@@ -385,10 +415,11 @@ def logic(message):
         if transactionHistory:
             for trans in transactionHistory:
                 funds = str(int(trans[5] / 100)) + '.' + "{:02d}".format(int(trans[5] % 100))
-                response_msg = response_msg + "Pending %s, Stock = %s: %s  Timestamp %s   Current Balance: $%s <br>" % (trans[1], trans[3], trans[4], trans[2], funds)
+                response_msg = response_msg + "Command %s, Stock = %s: %s  Timestamp %s   Current Balance: $%s <br>" % (trans[1], trans[3], trans[4], trans[2], funds)
 
         if triggers:
             for trigger in triggers:
+                # What should be displayed here
                 stockCost =
                 triggerAmount = str(int(trigger[3] / 100)) + '.' + "{:02d}".format(int(trigger[3] % 100))
                 response_msg = response_msg + "Trigger %s, Stock = %s: $%s  Trigger Amount $%s <br>" % (trigger[1], trigger[2], stockCost, triggerAmount)
