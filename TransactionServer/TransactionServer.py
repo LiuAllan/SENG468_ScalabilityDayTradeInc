@@ -55,6 +55,11 @@ def logic(message):
         amount = int(float(amount) * 100)
     print("amount is seen as ", amount)
 
+    # Basic Error Handling
+    if message['command'] is None:
+        response_msg = "Missing command"
+        return response_msg
+    # Check for valid input somehow
 
     if message['command'] == 'ADD':
         if message['amount'] is None:
@@ -167,7 +172,7 @@ def logic(message):
                 amountOfStock = amount // curr_price
 
                 if db.selectAccount(message['user'], message['stock_sym'])[2] >= amountOfStock:
-                    # Calcualtes exactly how much I am able to sell
+                    # Calculates exactly how much I am able to sell
                     sell_amt = amountOfStock * curr_price
                     remaining_amt = db.selectUsers(message['user'])[1] + sell_amt
 
@@ -178,7 +183,7 @@ def logic(message):
                     response_msg = "Placed an order to Sell " + str(message['stock_sym']) + ":" + format_money(curr_price)
 
                 else:
-                    response_msg = "Insufficent stock owned"
+                    response_msg = "Insufficient stock owned"
                     # audit error here
         else:
             response_msg = "Tried to sell less than 0 shares"
@@ -412,11 +417,13 @@ def logic(message):
             for stock in stocks:
                 response_msg = response_msg + "Stock = %s: %s <br>" % (stock[1], stock[2])
 
+        # The audit
         if transactionHistory:
             for trans in transactionHistory:
                 funds = str(int(trans[5] / 100)) + '.' + "{:02d}".format(int(trans[5] % 100))
                 response_msg = response_msg + "Command %s, Stock = %s: %s  Timestamp %s   Current Balance: $%s <br>" % (trans[1], trans[3], trans[4], trans[2], funds)
 
+        # pendingTriggers
         if triggers:
             for trigger in triggers:
                 # What should be displayed here
