@@ -197,19 +197,21 @@ class Database:
 
     ##
     ## Triggers
-    ## In Pending Table
+    ## 
+    
+    ##
+    ## BuyTriggers
+    ## 
 
-    # Input: (user_id, command, stock_sym)
-    # Output: (user_id, command, stock_sym, amount, funds, timeadded)
+    # Input: (user_id, stock_sym)
+    # Output: (user_id, stock_sym, reserve, trigger_amount)
     # If no record is found returns None
-    def selectTrigger(self, user_id, command, stock_sym):
+    def selectTrigger(self, user_id, stock_sym):
         self.cur.execute("""
 	    Select *
-	    From pending
-	    Where user_id = '{}' and command = '{}' and stock_sym = '{}'
-	    Order By timeadded desc
-	    limit 1;
-	    """.format(user_id, command, stock_sym))
+	    From BuyTriggers
+	    Where user_id = '{}' and stock_sym = '{}'
+	    """.format(user_id, stock_sym))
 
         result = self.cur.fetchone()
 
@@ -217,46 +219,111 @@ class Database:
 
         return result
 
-    # Input: (user_id, command, stock_sym, amount, funds, timeadded)
-    # Output: The record that is created
-    # Inserts a new record with user_id, command, stock_sym, amount, funds, and timeadded
-    def addTrigger(self, user_id, command, stock_sym, amount, funds, timeadded):
+    # Input: (user_id, stock_sym, reserve, trigger_amount)
+    # Output: The record that is created/updated
+    # The record containing user_id and stock_sym has it's reserve and trigger_amount changed to inputs
+    # If no record is found creates a record with (user_id, stock_sym, reserve, trigger_amount)
+    def changeTrigger(self, user_id, stock_sym, reserve, trigger_amount):
         self.cur.execute("""
-        INSERT INTO Pending
+        INSERT INTO BuyTriggers
         Values
         (
-          '{}', --user_id
-          '{}', --command
-          '{}', --stock_sym
-          {},   --amount
-          {},   --funds
-          {}    --timeadded
+          '{0}', --user_id
+          '{1}', --stock_sym
+          {2},   --reserve
+          {3}    --trigger_amount
         )
+        On Conflict (user_id, stock_sym)
+        DO
+        Update
+        SET reserve = {2} and trigger_amount = {3}
         Returning *;
-        """.format(user_id, command, stock_sym, amount, funds, timeadded))
+        """.format(user_id, stock_sym, reserve, trigger_amount))
 
         result = self.cur.fetchone()
 
         #print('good')
 
         return result
+        
 
-    # Input: (user_id, command, stock_sym)
-    # Output: The record that is deleted with highest timeadded (most recent)
-    # Delete all records with user_id, command, stock_sym
+    # Input: (user_id, stock_sym)
+    # Output: One record that is deleted
+    # Delete all records with (user_id, stock_sym)
     def removeTrigger(self, user_id, command, stock_sym):
         self.cur.execute("""
         Delete
-        From Pending
-        Where ctid --implicit line id
-        In (
-        Select ctid
-        From Pending
-        Where user_id = '{}' and command = '{}' and stock_sym = '{}'
-        Order By timeadded desc
-        )
+        From BuyTriggers
+        Where user_id = '{}' and stock_sym = '{}'
         Returning *;
-        """.format(user_id, command, stock_sym))
+        """.format(user_id, stock_sym))
+
+        result = self.cur.fetchone()
+
+        #print(result)
+
+        return result
+        
+        
+    ##
+    ## SellTriggers
+    ## 
+
+    # Input: (user_id, stock_sym)
+    # Output: (user_id, stock_sym, amount, reserve, trigger_amount)
+    # If no record is found returns None
+    def selectTrigger(self, user_id, stock_sym):
+        self.cur.execute("""
+	    Select *
+	    From SellTriggers
+	    Where user_id = '{}' and stock_sym = '{}'
+	    """.format(user_id, stock_sym))
+
+        result = self.cur.fetchone()
+
+        #print(result)
+
+        return result
+
+    # Input: (user_id, stock_sym, amount, reserve, trigger_amount)
+    # Output: The record that is created/updated
+    # The record containing user_id and stock_sym has it's amount, reserve and trigger_amount changed to inputs
+    # If no record is found creates a record with (user_id, stock_sym, amount, reserve, trigger_amount)
+    def changeTrigger(self, user_id, stock_sym, amount, reserve, trigger_amount):
+        self.cur.execute("""
+        INSERT INTO SellTriggers
+        Values
+        (
+          '{0}', --user_id
+          '{1}', --stock_sym
+          {2},   --reserve
+          {3},   --amount
+          {4}    --trigger_amount
+        )
+        On Conflict (user_id, stock_sym)
+        DO
+        Update
+        SET reserve = {2} and amount = {3} and trigger_amount = {4}
+        Returning *;
+        """.format(user_id, stock_sym, amount, reserve, trigger_amount))
+
+        result = self.cur.fetchone()
+
+        #print('good')
+
+        return result
+        
+
+    # Input: (user_id, stock_sym)
+    # Output: One record that is deleted
+    # Delete all records with (user_id, stock_sym)
+    def removeTrigger(self, user_id, command, stock_sym):
+        self.cur.execute("""
+        Delete
+        From SellTriggers
+        Where user_id = '{}' and stock_sym = '{}'
+        Returning *;
+        """.format(user_id, stock_sym))
 
         result = self.cur.fetchone()
 
@@ -330,3 +397,34 @@ class Database:
         #print(result)
 
         return result
+
+
+
+    # Input: user_id
+    # Output:   (user_id, funds),
+    #           [(user_id, stock_sym, amount), ...], 
+    #           [(user_id, command, stock_sym, amount, funds, timeadded), ...], all transactions (dumplog)
+    #           [(user_id, command, stock_sym, amount, funds, timeadded), ...]  triggers
+    # If any don't exist will return NONE, [], [], []
+    def displaySummary(self, user_id):
+        balance = selectUsers(self, user_id)
+        
+        self.cur.execute("""
+	    Select *
+    	From account
+	    Where user_id = '{}';
+    	""".format(user_id))
+        stocks = self.cur.fetchall()
+        
+        transactionHistory = dumpAudit(self, user_id)
+        
+        self.cur.execute("""
+	    Select *
+	    From pending
+	    Where user_id = '{}' and command in ('SET_BUY_AMOUNT', 'SET_BUY_TRIGGER', 'SET_SELL_AMOUNT', 'SET_SELL_TRIGGER')
+	    Order By timeadded desc
+	    """.format(user_id, command))
+        triggers = self.cur.fetchall()
+        
+        return balance, stocks, transactionHistory, triggers
+        

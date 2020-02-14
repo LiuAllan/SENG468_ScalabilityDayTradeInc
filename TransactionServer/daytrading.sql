@@ -25,6 +25,25 @@ CREATE TABLE Pending (
   FOREIGN KEY (user_id) REFERENCES Users (user_id)
 );
 
+CREATE TABLE BuyTriggers (
+  user_id varchar(30) NOT NULL,
+  stock_sym varchar(3) NOT NULL,
+  reserve int NOT NULL,	--funds taking from user
+  trigger_amount int NOT NULL,	--amount to trigger at
+
+  FOREIGN KEY (user_id) REFERENCES Users (user_id)
+);
+
+CREATE TABLE SellTriggers (
+  user_id varchar(30) NOT NULL,
+  stock_sym varchar(3) NOT NULL,
+  amount int NOT NULL,	--dollar amount to sell
+  reserve int NOT NULL,	--shares taking from account
+  trigger_amount int NOT NULL,	--amount to trigger at
+
+  FOREIGN KEY (user_id) REFERENCES Users (user_id)
+);
+
 CREATE TABLE Audit (
   audit_id serial,
   user_id varchar(30) NOT NULL,
