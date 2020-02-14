@@ -47,12 +47,19 @@ CREATE TABLE SellTriggers (
 CREATE TABLE Audit (
   audit_id serial,
   user_id varchar(30) NOT NULL,
-  command varchar(30) NOT NULL,
+  command varchar(30),
   timeadded bigint NOT NULL,
   stock_sym varchar(3),
   amount int,
   funds int,
   cryptokey varchar(100),
+  server varchar(30) NOT NULL,
+  filename varchar(30),
+  stock_price int,
+  quote_time bigint,
+  action varchar(30),
+  error_msg varchar(100),
+  debug_msg varchar(100),
 
   PRIMARY KEY (audit_id),
   FOREIGN KEY (user_id) REFERENCES Users (user_id)
