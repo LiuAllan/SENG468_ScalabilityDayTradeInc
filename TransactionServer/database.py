@@ -206,14 +206,23 @@ class Database:
     # Input: (user_id, stock_sym)
     # Output: (user_id, stock_sym, reserve, trigger_amount)
     # If no record is found returns None
-    def selectTrigger(self, user_id, stock_sym):
-        self.cur.execute("""
+    def selectTrigger(self, user_id, command, stock_sym):
+        if command == 'SET_BUY_AMOUNT' or command == 'SET_BUY_TRIGGER':
+            self.cur.execute("""
+	        Select *
+	        From BuyTriggers
+	        Where user_id = '{}' and stock_sym = '{}'
+	        """.format(user_id, stock_sym))
+
+            result = self.cur.fetchone()
+        else:
+            self.cur.execute("""
 	    Select *
-	    From BuyTriggers
+	    From SellTriggers
 	    Where user_id = '{}' and stock_sym = '{}'
 	    """.format(user_id, stock_sym))
 
-        result = self.cur.fetchone()
+            result = self.cur.fetchone()
 
         #print(result)
 
@@ -223,24 +232,44 @@ class Database:
     # Output: The record that is created/updated
     # The record containing user_id and stock_sym has it's reserve and trigger_amount changed to inputs
     # If no record is found creates a record with (user_id, stock_sym, reserve, trigger_amount)
-    def changeTrigger(self, user_id, stock_sym, reserve, trigger_amount):
-        self.cur.execute("""
-        INSERT INTO BuyTriggers
-        Values
-        (
-          '{0}', --user_id
-          '{1}', --stock_sym
-          {2},   --reserve
-          {3}    --trigger_amount
-        )
-        On Conflict (user_id, stock_sym)
-        DO
-        Update
-        SET reserve = {2} and trigger_amount = {3}
-        Returning *;
-        """.format(user_id, stock_sym, reserve, trigger_amount))
+    def changeTrigger(self, user_id, command, stock_sym, reserve, trigger_amount):
+        if command == 'SET_BUY_AMOUNT' or command == 'SET_BUY_TRIGGER':
+            self.cur.execute("""
+            INSERT INTO BuyTriggers
+            Values
+            (
+              '{0}', --user_id
+              '{1}', --stock_sym
+              {2},   --reserve
+              {3}    --trigger_amount
+            )
+            On Conflict (user_id, stock_sym)
+            DO
+            Update
+            SET reserve = {2} and trigger_amount = {3}
+            Returning *;
+            """.format(user_id, stock_sym, reserve, trigger_amount))
 
-        result = self.cur.fetchone()
+            result = self.cur.fetchone()
+        else:
+            self.cur.execute("""
+            INSERT INTO SellTriggers
+            Values
+            (
+              '{0}', --user_id
+              '{1}', --stock_sym
+              {2},   --reserve
+              {3},   --amount
+              {4}    --trigger_amount
+            )
+            On Conflict (user_id, stock_sym)
+            DO
+            Update
+            SET reserve = {2} and amount = {3} and trigger_amount = {4}
+            Returning *;
+            """.format(user_id, stock_sym, amount, reserve, trigger_amount))
+
+            result = self.cur.fetchone()
 
         #print('good')
 
@@ -251,14 +280,24 @@ class Database:
     # Output: One record that is deleted
     # Delete all records with (user_id, stock_sym)
     def removeTrigger(self, user_id, command, stock_sym):
-        self.cur.execute("""
-        Delete
-        From BuyTriggers
-        Where user_id = '{}' and stock_sym = '{}'
-        Returning *;
-        """.format(user_id, stock_sym))
+        if command == 'SET_BUY_AMOUNT' or command == 'SET_BUY_TRIGGER':
+            self.cur.execute("""
+            Delete
+            From BuyTriggers
+            Where user_id = '{}' and stock_sym = '{}'
+            Returning *;
+            """.format(user_id, stock_sym))
 
-        result = self.cur.fetchone()
+            result = self.cur.fetchone()
+        else:
+            self.cur.execute("""
+            Delete
+            From SellTriggers
+            Where user_id = '{}' and stock_sym = '{}'
+            Returning *;
+            """.format(user_id, stock_sym))
+
+            result = self.cur.fetchone()
 
         #print(result)
 
@@ -272,64 +311,64 @@ class Database:
     # Input: (user_id, stock_sym)
     # Output: (user_id, stock_sym, amount, reserve, trigger_amount)
     # If no record is found returns None
-    def selectTrigger(self, user_id, stock_sym):
-        self.cur.execute("""
-	    Select *
-	    From SellTriggers
-	    Where user_id = '{}' and stock_sym = '{}'
-	    """.format(user_id, stock_sym))
-
-        result = self.cur.fetchone()
+#    def selectTrigger(self, user_id, stock_sym):
+#        self.cur.execute("""
+#	    Select *
+#	    From SellTriggers
+#	    Where user_id = '{}' and stock_sym = '{}'
+#	    """.format(user_id, stock_sym))
+#
+#        result = self.cur.fetchone()
 
         #print(result)
 
-        return result
+#        return result
 
     # Input: (user_id, stock_sym, amount, reserve, trigger_amount)
     # Output: The record that is created/updated
     # The record containing user_id and stock_sym has it's amount, reserve and trigger_amount changed to inputs
     # If no record is found creates a record with (user_id, stock_sym, amount, reserve, trigger_amount)
-    def changeTrigger(self, user_id, stock_sym, amount, reserve, trigger_amount):
-        self.cur.execute("""
-        INSERT INTO SellTriggers
-        Values
-        (
-          '{0}', --user_id
-          '{1}', --stock_sym
-          {2},   --reserve
-          {3},   --amount
-          {4}    --trigger_amount
-        )
-        On Conflict (user_id, stock_sym)
-        DO
-        Update
-        SET reserve = {2} and amount = {3} and trigger_amount = {4}
-        Returning *;
-        """.format(user_id, stock_sym, amount, reserve, trigger_amount))
+#    def changeTrigger(self, user_id, stock_sym, amount, reserve, trigger_amount):
+#        self.cur.execute("""
+#        INSERT INTO SellTriggers
+#        Values
+#        (
+#          '{0}', --user_id
+#          '{1}', --stock_sym
+#          {2},   --reserve
+#          {3},   --amount
+#          {4}    --trigger_amount
+#        )
+#        On Conflict (user_id, stock_sym)
+#        DO
+#        Update
+#        SET reserve = {2} and amount = {3} and trigger_amount = {4}
+#        Returning *;
+#        """.format(user_id, stock_sym, amount, reserve, trigger_amount))
 
-        result = self.cur.fetchone()
+#        result = self.cur.fetchone()
 
         #print('good')
 
-        return result
+#        return result
         
 
     # Input: (user_id, stock_sym)
     # Output: One record that is deleted
     # Delete all records with (user_id, stock_sym)
-    def removeTrigger(self, user_id, command, stock_sym):
-        self.cur.execute("""
-        Delete
-        From SellTriggers
-        Where user_id = '{}' and stock_sym = '{}'
-        Returning *;
-        """.format(user_id, stock_sym))
+#    def removeTrigger(self, user_id, command, stock_sym):
+#        self.cur.execute("""
+#        Delete
+#        From SellTriggers
+#        Where user_id = '{}' and stock_sym = '{}'
+#        Returning *;
+#        """.format(user_id, stock_sym))
 
-        result = self.cur.fetchone()
+#        result = self.cur.fetchone()
 
         #print(result)
 
-        return result
+#        return result
 
 
     ##

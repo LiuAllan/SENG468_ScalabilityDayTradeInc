@@ -199,17 +199,20 @@ def logic(message):
                     timestamp = int(current_quote[3])
 
                     # Sell the amount by updating the DB
-                    db.addPending(message['user'], message['command'], message['stock_sym'], amountOfStock, remaining_amt, timestamp)
+                    db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], message['stock_sym'], funds = db.selectUsers(message['user'])[1], cryptokey = current_quote[4], stock_price = current_quote[0], quote_time = current_quote[3])
                     response_msg = "Placed an order to Sell " + str(message['stock_sym']) + ":" + format_money(curr_price)
 
                 else:
                     response_msg = "Insufficient stock owned"
-                    # audit error here
+                    # audit error
+                    db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], message['stock_sym'], funds = db.selectUsers(message['user'])[1], error_msg = response_msg)
         else:
             response_msg = "Tried to sell less than 0 shares"
-            # audit error here
+            # audit error
+            db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], message['stock_sym'], funds = db.selectUsers(message['user'])[1], error_msg = response_msg)
 
         return response_msg
+##### SELL FINISHED #####
 
     elif message['command'] == 'COMMIT_SELL':
         # print(message['user'])
@@ -230,7 +233,7 @@ def logic(message):
                 # create or update the stock for the user
                 db.changeAccount(message['user'], stock_sym, amountOfStock)
 
-                db.addAudit(message['user'], message['command'], curr_time(), stock_sym, amountOfStock, amount, None)
+                db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], stock_sym, funds = db.selectUsers(message['user'])[1], action = 'remove')
 
                 # Delete the pending records
                 db.removePending(message['user'], 'SELL')
@@ -239,18 +242,24 @@ def logic(message):
             else:
                 response_msg = "Time is greater than 60s. Commit buy cancelled."
                 # audit error here
+                db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds = db.selectUsers(message['user'])[1], error_msg = response_msg)
 
         else:
             response_msg = "No sell order pending. Cancelled COMMIT SELL."
             # audit error here
+            db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds = db.selectUsers(message['user'])[1], error_msg = response_msg)
 
         return response_msg
+##### COMMIT_SELL FINISHED #####
+
 
     elif message['command'] == 'CANCEL_SELL':
         # print(message['user'])
         db.removePending(message['user'], 'SELL')
         response_msg = "Cancelled Sell"
+        db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds = db.selectUsers(message['user'])[1])
         return response_msg
+##### CANCEL_SELL FINISHED #####
 
     elif message['command'] == 'SET_BUY_AMOUNT':
         # print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
@@ -269,7 +278,7 @@ def logic(message):
                 db.changeUsers(message['user'], new_funds)
 
                 # Set up the trigger by adding a record in the DB with its Trigger amount to add
-                db.addTrigger(message['user'], message['command'], message['stock_sym'], amount, new_funds, curr_time())
+                db.changeTrigger(message['user'], message['command'], message['stock_sym'], amount, new_funds)
 
                 db.addAudit(message['user'], message['command'], curr_time(), message['stock_sym'], None, new_funds, None)
                 response_msg = "BUY TRIGGER amount is SET"
