@@ -46,6 +46,8 @@ transactionserverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 db = Database()
 
 # command, user=None, stock_sym=None, amount=None, filename=None
+
+##### LOGIC START #####
 def logic(message):
     # this fixes the bug when comparing "amount < 0"
     amount = message.get('amount')
@@ -64,10 +66,12 @@ def logic(message):
     if message['command'] == 'ADD':
         if message['amount'] is None:
             response_msg = "No input for Amount"
-            # need to audit the error here
+            # Adding audit error
+            db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds = db.selectUsers(message['user'])[1], error_msg = response_msg)
         elif amount < 0:
             response_msg = "Attempted to add negative currency"
-            # need to audit the error here
+            # Adding audit error
+            db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds = db.selectUsers(message['user'])[1], error_msg = response_msg)
         else:
             # select the user
             check_user = db.selectUsers(message['user'])
@@ -86,8 +90,9 @@ def logic(message):
             db.changeUsers(message['user'], usr_funds)
             response_msg = "Added $%s to %s's account." % (format_money(amount), message['user'])
             # audit the transaction
-            db.addAudit(message['user'], message['command'], curr_time(), None, None, usr_funds, None)
+            db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds = usr_funds, action = 'add')
         return response_msg
+##### ADD FINISHED #####
 
     elif message['command'] == 'QUOTE':
         current_quote = get_quote(message)
@@ -95,7 +100,10 @@ def logic(message):
         print(current_quote)
         response_msg = "Quote for " + str(message['stock_sym']) + ':' + str(current_quote[0])
         print(response_msg)
+        # audit the quote
+        db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], message['stock_sym'], funds = db.selectUsers(message['user'])[1], stock_price = current_quote[0], quote_time = current_quote[3], cryptokey = current_quote[4])
         return response_msg
+##### QUOTE FINISHED #####
 
     elif message['command'] == 'BUY':
         # print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
@@ -117,11 +125,16 @@ def logic(message):
             db.addPending(message['user'], message['command'], message['stock_sym'], amountOfStock, remaining_amt, timestamp)
 
             response_msg = "Placed an order to Buy " + str(message['stock_sym']) + ":" + str(curr_price)
+            # adding audit for buy
+            db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], message['stock_sym'], funds = db.selectUsers(message['user'])[1], cryptokey = current_quote[4], stock_price = current_quote[0], quote_time = current_quote[3])
 
         else:
-            response_msg = "Not enough funds in user account to purchase stock"
+            response_msg = "Not enough funds in user %s's account to purchase stock" % (message['user'])
+            # audit error
+            db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], message['stock_sym'], funds = db.selectUsers(message['user'])[1], error_msg = response_msg)
 
         return response_msg
+##### BUY FINISHED #####
 
     elif message['command'] == 'COMMIT_BUY':
         # print(message['user'])
@@ -140,26 +153,33 @@ def logic(message):
                 # create or update the stock for the user
                 db.changeAccount(message['user'], stock_sym, amountOfStock)
 
-                db.addAudit(message['user'], message['command'], curr_time(), stock_sym, amountOfStock, amount, None)
-
                 # Delete the pending records
                 db.removePending(message['user'], 'BUY')
                 response_msg = "Committed most recent BUY order"
 
+                # audit the commit buy 
+                db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], stock_sym, funds = db.selectUsers(message['user'])[1], action = 'remove')
+
             else:
                 response_msg = "Time is greater than 60s. Commit buy cancelled."
                 # audit the error here
+                db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds = db.selectUsers(message['user'])[1], error_msg = response_msg)
 
         else:
             response_msg = "No buy order pending. Cancelled COMMIT BUY."
             # audit the error here
+            db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds = db.selectUsers(message['user'])[1], error_msg = response_msg)
         return response_msg
+##### COMMIT_BUY FINISHED #####
 
     elif message['command'] == 'CANCEL_BUY':
         # print(message['user'])
         db.removePending(message['user'], 'BUY')
         response_msg = "Cancelled Buy"
+        # audit for cancel buy
+        db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds = db.selectUsers(message['user'])[1])
         return response_msg
+##### CANCEL_BUY FINISHED #####
 
     elif message['command'] == 'SELL':
         # print(message['user'] + ', ' + message['stock_sym'] + ', ' + message['amount'])
@@ -420,14 +440,15 @@ def logic(message):
         # The audit
         if transactionHistory:
             for trans in transactionHistory:
-                funds = str(int(trans[5] / 100)) + '.' + "{:02d}".format(int(trans[5] % 100))
-                response_msg = response_msg + "Command %s, Stock = %s: %s  Timestamp %s   Current Balance: $%s <br>" % (trans[1], trans[3], trans[4], trans[2], funds)
+                print(trans)
+                funds = str(int(trans[6] / 100)) + '.' + "{:02d}".format(int(trans[6] % 100))
+                response_msg = response_msg + "Command %s, Stock = %s: %s  Timestamp %s   Current Balance: $%s <br>" % (trans[2], trans[4], trans[10], trans[3], funds)
 
         # pendingTriggers
         if triggers:
             for trigger in triggers:
                 # What should be displayed here
-                stockCost =
+                stockCost = None
                 triggerAmount = str(int(trigger[3] / 100)) + '.' + "{:02d}".format(int(trigger[3] % 100))
                 response_msg = response_msg + "Trigger %s, Stock = %s: $%s  Trigger Amount $%s <br>" % (trigger[1], trigger[2], stockCost, triggerAmount)
 
@@ -435,7 +456,10 @@ def logic(message):
 
     else:
         print('Invalid Command.')
+##### LOGIC END #####
 
+
+##### HELPER FUNCTIONS START #####
 def curr_time():
     return int(time.time() * 1000)
 
@@ -461,6 +485,8 @@ def get_quote(message):
     reply = ast.literal_eval(str(reply.split(',')))
     quoteserverSocket.close()
     return reply
+##### HELPER FUNCTIONS END #####
+
 
 
 # Prepare a server socket

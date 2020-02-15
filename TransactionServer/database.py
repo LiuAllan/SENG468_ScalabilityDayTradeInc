@@ -340,7 +340,7 @@ class Database:
     # Output: The record that is created
     # Inserts a new record with (user_id, command, [stock_sym, amount, funds, and timeadded])
     # Puts Null if not given
-    def addAudit(self, user_id, command, timeadded, stock_sym = None, amount = None, funds = None, cryptokey = None):
+    def addAudit(self, user_id, timeadded, server, command = None, stock_sym = None, amount = None, funds = None, cryptokey = None, filename = None, stock_price = None, quote_time = None, action = None, error_msg = None, debug_msg = None):
         self.cur.execute("""
         INSERT INTO Audit
         Values
@@ -352,18 +352,33 @@ class Database:
           {},       --stock_sym
           {},       --amount
           {},       --funds
-          {}        --cryptokey
+          {},       --cryptokey
+          {},       --server
+          {},       --filename
+          {},       --stock_price
+          {},       --quote_time
+          {},       --action
+          {},       --error_msg
+          {}       --debug_msg
         )
         Returning *;
         """.format
         (
             user_id,
-            command,
+            command if command else 'Null',
             timeadded,
             ("'" + stock_sym + "'") if stock_sym else 'Null',
             amount if amount else 'Null',
             funds if funds else 'Null',
-            ("'" + cryptokey + "'") if cryptokey else 'Null')
+            ("'" + cryptokey + "'") if cryptokey else 'Null',
+            ("'" + server + "'"),
+            ("'" + filename + "'") if filename else 'Null',
+            stock_price if stock_price else 'Null',
+            ("'" + quote_time + "'") if quote_time else 'Null',
+            ("'" + action + "'") if action else 'Null',
+            ("'" + error_msg + "'") if error_msg else 'Null',
+            ("'" + debug_msg + "'") if debug_msg else 'Null')
+            
         )
         # The format looks weird to accommodate None -> Null
 
@@ -407,7 +422,7 @@ class Database:
     #           [(user_id, command, stock_sym, amount, funds, timeadded), ...]  triggers
     # If any don't exist will return NONE, [], [], []
     def displaySummary(self, user_id):
-        balance = selectUsers(self, user_id)
+        balance = self.selectUsers(user_id)
         
         self.cur.execute("""
 	    Select *
@@ -416,14 +431,14 @@ class Database:
     	""".format(user_id))
         stocks = self.cur.fetchall()
         
-        transactionHistory = dumpAudit(self, user_id)
+        transactionHistory = self.dumpAudit(user_id)
         
         self.cur.execute("""
 	    Select *
 	    From pending
 	    Where user_id = '{}' and command in ('SET_BUY_AMOUNT', 'SET_BUY_TRIGGER', 'SET_SELL_AMOUNT', 'SET_SELL_TRIGGER')
 	    Order By timeadded desc
-	    """.format(user_id, command))
+	    """.format(user_id))
         triggers = self.cur.fetchall()
         
         return balance, stocks, transactionHistory, triggers
