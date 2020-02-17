@@ -199,6 +199,8 @@ def logic(message):
                     timestamp = int(current_quote[3])
 
                     # Sell the amount by updating the DB
+                    db.addPending(message['user'], message['command'], message['stock_sym'], amountOfStock, remaining_amt, timestamp)
+
                     db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], message['stock_sym'], funds = db.selectUsers(message['user'])[1], cryptokey = current_quote[4], stock_price = current_quote[0], quote_time = current_quote[3])
                     response_msg = "Placed an order to Sell " + str(message['stock_sym']) + ":" + format_money(curr_price)
 
@@ -338,10 +340,21 @@ def logic(message):
         #     response_msg = "Insufficient stock funds to set sell amount"
         #
         # return response_msg
-        stock_amount = db.selectAccount(message['user'], message['stock_sym'])[2]
-        if db.selectTrigger(message['user'], message['command'], message['stock_sym']):
-            response_msg = "Trigger is already set for stock: " + str(message['stock_sym'])
-        db.addTrigger(message['user'], message['command'], message['stock_sym'], message['amount'], 0, curr_time())
+
+        # if I have stock to sell
+        sellTrigger = db.selectAccount(message['user'], message['stock_sym'])
+        amountOfStock = sellTrigger[2]
+        if amountOfStock > 0:
+            # There is an existing trigger
+            if db.selectTrigger(message['user'], message['command'], message['stock_sym']) != None:
+                response_msg = "Trigger is already set for stock: " + str(message['stock_sym'])
+            else:
+                # Create the trigger
+                db.changeTrigger(message['user'], message['stock_sym'], 0, message['amount'])
+                response_msg = "SELL TRIGGER is Set"
+        else:
+            response_msg = "Not enough stock owned to set sell trigger"
+            # audit the error
 
         return response_msg
 
