@@ -246,7 +246,7 @@ class Database:
             On Conflict (user_id, stock_sym)
             DO
             Update
-            SET reserve = {2} and trigger_amount = {3}
+            SET reserve = {2}, trigger_amount = {3}
             Returning *;
             """.format(user_id, stock_sym, reserve, trigger_amount))
 
@@ -265,7 +265,7 @@ class Database:
             On Conflict (user_id, stock_sym)
             DO
             Update
-            SET reserve = {2} and amount = {3} and trigger_amount = {4}
+            SET reserve = {2}, amount = {3}, trigger_amount = {4}
             Returning *;
             """.format(user_id, stock_sym, amount, reserve, trigger_amount))
 

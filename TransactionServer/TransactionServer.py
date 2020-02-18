@@ -282,7 +282,7 @@ def logic(message):
                 # Set up the trigger by adding a record in the DB with its Trigger amount to add
                 db.changeTrigger(message['user'], message['command'], message['stock_sym'], amount, new_funds)
 
-                db.addAudit(message['user'], message['command'], curr_time(), message['stock_sym'], None, new_funds, None)
+                db.addAudit(message['user'], curr_time(), 'Transaction_server', message['command'], message['stock_sym'], funds = new_funds)
                 response_msg = "BUY TRIGGER amount is SET"
         else:
             response_msg = "Not enough funds in user account to SET TRIGGER"

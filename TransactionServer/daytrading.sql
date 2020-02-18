@@ -31,7 +31,8 @@ CREATE TABLE BuyTriggers (
   reserve int NOT NULL,	--funds taking from user
   trigger_amount int NOT NULL,	--amount to trigger at
 
-  FOREIGN KEY (user_id) REFERENCES Users (user_id)
+  UNIQUE(user_id, stock_sym)
+  --FOREIGN KEY (user_id) REFERENCES Users (user_id)
 );
 
 CREATE TABLE SellTriggers (
@@ -41,7 +42,8 @@ CREATE TABLE SellTriggers (
   reserve int NOT NULL,	--shares taking from account
   trigger_amount int NOT NULL,	--amount to trigger at
 
-  FOREIGN KEY (user_id) REFERENCES Users (user_id)
+  UNIQUE(user_id, stock_sym)
+  --FOREIGN KEY (user_id) REFERENCES Users (user_id)
 );
 
 CREATE TABLE Audit (
