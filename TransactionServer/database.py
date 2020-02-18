@@ -232,7 +232,7 @@ class Database:
     # Output: The record that is created/updated
     # The record containing user_id and stock_sym has it's reserve and trigger_amount changed to inputs
     # If no record is found creates a record with (user_id, stock_sym, reserve, trigger_amount)
-    def changeTrigger(self, user_id, command, stock_sym, reserve, trigger_amount):
+    def changeTrigger(self, user_id, command, stock_sym, reserve, trigger_amount, amount=0):
         if command == 'SET_BUY_AMOUNT' or command == 'SET_BUY_TRIGGER':
             self.cur.execute("""
             INSERT INTO BuyTriggers
