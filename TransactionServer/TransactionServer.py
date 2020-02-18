@@ -83,14 +83,14 @@ def logic(message):
             else:
                 # get the current funds of the user
                 usr_funds = db.selectUsers(message['user'])[1]
-                usr_funds +=  amount
+                usr_funds += amount
                 print('user funds is:', usr_funds)
 
             # update the Database with the newly added funds
             db.changeUsers(message['user'], usr_funds)
             response_msg = "Added $%s to %s's account." % (format_money(amount), message['user'])
             # audit the transaction
-            db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds = usr_funds, action = 'add')
+            db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds = usr_funds, action = 'add', amount = amount)
         return response_msg
 ##### ADD FINISHED #####
 
@@ -124,9 +124,9 @@ def logic(message):
             # set pending buy to latest values of buy and update with timestamp
             db.addPending(message['user'], message['command'], message['stock_sym'], amountOfStock, remaining_amt, timestamp)
 
-            response_msg = "Placed an order to Buy " + str(message['stock_sym']) + ":" + str(curr_price)
+            response_msg = "Placed an order to Buy " + str(message['stock_sym']) + ":" + format_money(curr_price)
             # adding audit for buy
-            db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], message['stock_sym'], funds = db.selectUsers(message['user'])[1], cryptokey = current_quote[4], stock_price = current_quote[0], quote_time = current_quote[3])
+            db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], message['stock_sym'], funds = db.selectUsers(message['user'])[1], cryptokey = current_quote[4], stock_price = current_quote[0], quote_time = current_quote[3], amount = amount)
 
         else:
             response_msg = "Not enough funds in user %s's account to purchase stock" % (message['user'])
@@ -201,7 +201,7 @@ def logic(message):
                     # Sell the amount by updating the DB
                     db.addPending(message['user'], message['command'], message['stock_sym'], amountOfStock, remaining_amt, timestamp)
 
-                    db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], message['stock_sym'], funds = db.selectUsers(message['user'])[1], cryptokey = current_quote[4], stock_price = current_quote[0], quote_time = current_quote[3])
+                    db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], message['stock_sym'], funds = db.selectUsers(message['user'])[1], cryptokey = current_quote[4], stock_price = current_quote[0], quote_time = current_quote[3], amount = amount)
                     response_msg = "Placed an order to Sell " + str(message['stock_sym']) + ":" + format_money(curr_price)
 
                 else:
@@ -280,7 +280,7 @@ def logic(message):
                 db.changeUsers(message['user'], new_funds)
 
                 # Set up the trigger by adding a record in the DB with its Trigger amount to add
-                db.changeTrigger(message['user'], message['command'], message['stock_sym'], amount, new_funds)
+                db.changeTrigger(message['user'], message['command'], message['stock_sym'], 0, amount)
 
                 db.addAudit(message['user'], curr_time(), 'Transaction_server', message['command'], message['stock_sym'], funds = new_funds)
                 response_msg = "BUY TRIGGER amount is SET"
@@ -299,7 +299,7 @@ def logic(message):
             if db.selectTrigger(message['user'], message['command'], message['stock_sym']):
                 db.removeTrigger(message['user'], message['command'], message['stock_sym'])
             # amount is the price that the stock price needs to be less than or equal to before executing a buy
-            db.addTrigger(message['user'], message['command'], message['stock_sym'], message['amount'], funds, curr_time())
+            db.changeTrigger(message['user'], message['command'], message['stock_sym'], reserve, amount)
             db.addAudit(message['user'], message['command'], curr_time(), message['stock_sym'], None, funds, None)
             response_msg = "Buy trigger is set"
         else:
@@ -323,7 +323,7 @@ def logic(message):
             # Delete the Trigger record
             db.removeTrigger(message['user'], 'SET_BUY_AMOUNT', message['stock_sym'])
             db.removeTrigger(message['user'], 'SET_BUY_TRIGGER', message['stock_sym'])
-            db.addAudit(message['user'], message['command'], curr_time(), message['stock_sym'], None, funds + triggerAmount[3], None)
+            db.addAudit(message['user'], curr_time(), 'Transaction', message['command'], message['stock_sym'], funds = funds + triggerAmount[3])
             response_msg = "Cancelled BUY TRIGGER"
         return response_msg
 
@@ -350,7 +350,7 @@ def logic(message):
                 response_msg = "Trigger is already set for stock: " + str(message['stock_sym'])
             else:
                 # Create the trigger
-                db.changeTrigger(message['user'], message['stock_sym'], 0, message['amount'])
+                db.changeTrigger(message['user'], message['command'], message['stock_sym'], 0, amount)
                 response_msg = "SELL TRIGGER is Set"
         else:
             response_msg = "Not enough stock owned to set sell trigger"
@@ -387,7 +387,7 @@ def logic(message):
 
             if stocks_owned >= amountOfStock:
                 db.changeAccount(message['user'], message['stock_sym'], stocks_owned - amountOfStock)
-                db.addTrigger(message['user'], message['command'], message['stock_sym'], message['amount'], amountOfStock, curr_time())
+                db.changeTrigger(message['user'], message['command'], message['stock_sym'], amountOfStock, amount) 
                 response_msg = "Sell trigger is set."
             else:
                 response_msg = "Insufficient stock to set sell amount"
@@ -415,15 +415,15 @@ def logic(message):
         #     response_msg = "Cancelled SELL TRIGGER"
         # return response_msg
 
-        triggerAmount = db.selectTrigger(message['user'], 'SET_SELL_TRIGGER', message['stock_sym'])[4]
+        triggerAmount = db.selectTrigger(message['user'], 'SET_SELL_TRIGGER', message['stock_sym'])
         stocks_owned = db.selectAccount(message['user'], message['stock_sym'])[2]
-        if not triggerAmount:
+        if triggerAmount is None:
             response_msg = "There are no Trigger for this stock"
             # audit the error
 
         else:
             # Add stocks back to the user account
-            db.changeAccount(message['user'], message['stock_sym'], stocks_owned + triggerAmount)
+            db.changeAccount(message['user'], message['stock_sym'], stocks_owned + triggerAmount[3])
             # Delete the Trigger record
             db.removeTrigger(message['user'], 'SET_SELL_TRIGGER', message['stock_sym'])
             db.removeTrigger(message['user'], 'SET_SELL_AMOUNT', message['stock_sym'])
@@ -451,20 +451,22 @@ def logic(message):
         userBalance, stocks, transactionHistory, triggers = db.displaySummary(message['user'])
 
         userBalance = str(int(userBalance[1] / 100)) + '.' + "{:02d}".format(int(userBalance[1] % 100))
-        response_msg = "Summary for %s <br> Current Balance: $%s <br>" % (message['user'], userBalance)
+        response_msg = "Summary for %s \n Current Balance: $%s \n" % (message['user'], userBalance)
 
         # Format the stocks, pending transactions, and triggers
 
         if stocks:
             for stock in stocks:
-                response_msg = response_msg + "Stock = %s: %s <br>" % (stock[1], stock[2])
+                response_msg = response_msg + "Stock = %s: %s \n" % (stock[1], stock[2])
 
         # The audit
         if transactionHistory:
             for trans in transactionHistory:
                 print(trans)
                 funds = str(int(trans[6] / 100)) + '.' + "{:02d}".format(int(trans[6] % 100))
-                response_msg = response_msg + "Command %s, Stock = %s: %s  Timestamp %s   Current Balance: $%s <br>" % (trans[2], trans[4], trans[10], trans[3], funds)
+                if trans[5] is not None:
+                    summaryAmount = str(int(trans[5] / 100)) + '.' + "{:02d}".format(int(trans[5] % 100))
+                response_msg = response_msg + "Command %s, Amount: %s, Stock = %s: %s  Timestamp %s   Current Balance: $%s \n" % (trans[2], summaryAmount, trans[4], trans[10], trans[3], funds)
 
         # pendingTriggers
         if triggers:
@@ -472,7 +474,7 @@ def logic(message):
                 # What should be displayed here
                 stockCost = None
                 triggerAmount = str(int(trigger[3] / 100)) + '.' + "{:02d}".format(int(trigger[3] % 100))
-                response_msg = response_msg + "Trigger %s, Stock = %s: $%s  Trigger Amount $%s <br>" % (trigger[1], trigger[2], stockCost, triggerAmount)
+                response_msg = response_msg + "Trigger %s, Stock = %s: $%s  Trigger Amount $%s \n" % (trigger[1], trigger[2], stockCost, triggerAmount)
 
         return response_msg
 
