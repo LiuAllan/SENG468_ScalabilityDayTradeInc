@@ -53,6 +53,7 @@ db = Database()
 def logic(message):
     # this fixes the bug when comparing "amount < 0"
     amount = message.get('amount')
+    stock_sym = message.get('stock_sym')
 
     # remove the decimals and convert to an int
     if amount:
@@ -70,10 +71,10 @@ def logic(message):
     if message['user'] and not acceptable_string(message['user']):
         return "User id is invalid"
 
-    if message['stock_sym'] and not acceptable_string(message['stock_sym']):
+    if stock_sym and not acceptable_string(stock_sym):
         return "Stock symbol is invalid"
 
-    if amount and not acceptable_string(amount):
+    if str(amount) and not acceptable_string(str(amount)):
         return "Amount is invalid"
 
 
