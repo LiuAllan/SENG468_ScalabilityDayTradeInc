@@ -35,6 +35,8 @@
 import socket
 import ast
 import time
+import re
+import string
 from database import Database
 
 # app = Flask(__name__)
@@ -61,7 +63,19 @@ def logic(message):
     if message['command'] is None:
         response_msg = "Missing command"
         return response_msg
-    # Check for valid input somehow
+
+    if message['command'] and not acceptable_string(message['command']):
+        return "Command is invalid"
+
+    if message['user'] and not acceptable_string(message['user']):
+        return "User id is invalid"
+
+    if message['stock_sym'] and not acceptable_string(message['stock_sym']):
+        return "Stock symbol is invalid"
+
+    if amount and not acceptable_string(amount):
+        return "Amount is invalid"
+
 
     if message['command'] == 'ADD':
         if message['amount'] is None:
@@ -511,7 +525,7 @@ def get_quote(message):
     quoteserverSocket.connect(('quoteserve.seng.uvic.ca', 4442))
     print('connected to quote server')
 
-    test = str(message['stock_sym'] + ',' + message['user']) + '\n'
+    # test = str(message['stock_sym'] + ',' + message['user']) + '\n'
     # print(test)
     quoteserverSocket.send((str(message['stock_sym'] + ',' + message['user']) + '\n').encode())
     print('sent symbol and user to quote server')
@@ -523,6 +537,11 @@ def get_quote(message):
     reply = ast.literal_eval(str(reply.split(',')))
     quoteserverSocket.close()
     return reply
+
+# https://stackoverflow.com/questions/1323364/in-python-how-to-check-if-a-string-only-contains-certain-characters
+def acceptable_string(strg, search=re.compile(r'[^a-zA-Z0-9._]').search):
+    return not bool(search(strg))
+
 ##### HELPER FUNCTIONS END #####
 
 
