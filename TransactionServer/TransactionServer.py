@@ -317,13 +317,16 @@ def logic(message):
             funds = temp[1]
             # if SET_BUY_AMOUNT command was executed for this user and stock symbol
             if db.selectTrigger(message['user'], 'SET_BUY_AMOUNT', message['stock_sym']):
-                # if trigger was already set, remove it and add updated trigger
-                if db.selectTrigger(message['user'], message['command'], message['stock_sym']):
-                    db.removeTrigger(message['user'], message['command'], message['stock_sym'])
                 # amount is the price that the stock price needs to be less than or equal to before executing a buy
-                db.changeTrigger(message['user'], message['command'], message['stock_sym'], reserve, amount)
-                db.addAudit(message['user'], message['command'], curr_time(), message['stock_sym'], None, funds, None)
-                response_msg = "Buy trigger is set"
+                SetbuyAmount = db.selectTrigger(message['user'], message['command'], message['stock_sym'])[3]
+                if amount <= SetbuyAmount:
+                    reserve = SetbuyAmount // amount
+                    
+                    db.changeTrigger(message['user'], message['command'], message['stock_sym'], reserve, amount)
+                    db.addAudit(message['user'],  curr_time(), 'Transaction_server', message['command'], message['stock_sym'], funds)
+                    response_msg = "Buy trigger is set"
+                else:
+                    response_msg = "Buy Trigger amount is more than the Set Trigger amount"
             else:
                 response_msg = "SET_BUY_AMOUNT has not been executed for this command to run"
                 # audit the error
@@ -444,14 +447,15 @@ def logic(message):
         # return response_msg
 
         triggerAmount = db.selectTrigger(message['user'], 'SET_SELL_TRIGGER', message['stock_sym'])
-        stocks_owned = db.selectAccount(message['user'], message['stock_sym'])[2]
+        stocks_owned = db.selectAccount(message['user'], message['stock_sym'])
         if triggerAmount is None:
             response_msg = "There are no Trigger for this stock"
             # audit the error
-
+        if stocks_owned is None:
+            response_msg = "Account does not exist"
         else:
             # Add stocks back to the user account
-            db.changeAccount(message['user'], message['stock_sym'], stocks_owned + triggerAmount[3])
+            db.changeAccount(message['user'], message['stock_sym'], stocks_owned[2] + triggerAmount[3])
             # Delete the Trigger record
             db.removeTrigger(message['user'], 'SET_SELL_TRIGGER', message['stock_sym'])
             db.removeTrigger(message['user'], 'SET_SELL_AMOUNT', message['stock_sym'])
