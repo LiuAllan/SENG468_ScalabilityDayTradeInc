@@ -5,7 +5,7 @@ import string
 import sys
 import time
 import threading
-
+from database import Database
 #  - We set the and store the triggers in a Database from Transaction server
 #  - Get quotes of each trigger about to expire
 #  - Compare quotes with trigger amount
@@ -27,3 +27,33 @@ import threading
 #         update user funds in DB with funds + quote amount
 #         Delete the trigger record
 #         update timestamp
+
+# Initialize Database
+db = Database()
+
+def curr_time():
+    return int(time.time() * 1000)
+
+def get_quote(message):
+    quoteserverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    quoteserverSocket.connect(('quoteserve.seng.uvic.ca', 4442))
+    print('connected to quote server')
+    quoteserverSocket.send((str(message['stock_sym'] + ',' + message['user']) + '\n').encode())
+    print('sent symbol and user to quote server')
+    reply = quoteserverSocket.recv(1024).decode()
+    reply = ast.literal_eval(str(reply.split(',')))
+    quoteserverSocket.close()
+    return reply
+
+def check_quote:
+
+def check_trigger:
+
+# Should handle checking every few seconds
+def main():
+
+
+
+
+if __name__ == "__main__":
+    main()
