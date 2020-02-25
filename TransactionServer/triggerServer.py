@@ -45,14 +45,43 @@ def get_quote(message):
     quoteserverSocket.close()
     return reply
 
-def check_quote:
+def check_quote():
 
-def check_trigger:
+
+def check_trigger():
+    # Somehow get the user records
+    has_buy_trigger = selectTrigger(user, command, stock_sym)
+    has_sell_trigger = selectTrigger(user, command, stock_sym)
+
+    if has_buy_trigger is None:
+        print('Trigger was not set in Transaction server')
+    else:
+        current_quote = get_quote(has_buy_trigger)
+        if command == 'SET_BUY_TRIGGER':
+            if current_quote[0] <= has_buy_trigger[3]:
+                # update the DB
+                db.changeUsers(message['user'], amount - current_quote[0])
+                # create or update the stock for the user
+                db.changeAccount(message['user'], stock_sym, amountOfStock)
+                db.removeTrigger(user, command, stock_sym)
+            else:
+                print('Nothing done to Trigger')
+
+        if command == 'SET_SELL_TRIGGER':
+            if current_quote[0] <= has_sell_trigger[3]:
+                # update the DB
+                db.changeUsers(message['user'], amount + current_quote[0])
+                # create or update the stock for the user
+                db.changeAccount(message['user'], stock_sym, amountOfStock)
+                db.removeTrigger(user, command, stock_sym)
+            else:
+                print('Nothing done to Trigger')
+
 
 # Should handle checking every few seconds
 def main():
-
-
+    timer = threading.Timer(5.0, check_trigger)
+    timer.start()
 
 
 if __name__ == "__main__":
