@@ -197,11 +197,11 @@ class Database:
 
     ##
     ## Triggers
-    ## 
-    
+    ##
+
     ##
     ## BuyTriggers
-    ## 
+    ##
 
     # Input: (user_id, stock_sym)
     # Output: (user_id, stock_sym, reserve, trigger_amount)
@@ -217,16 +217,41 @@ class Database:
             result = self.cur.fetchone()
         else:
             self.cur.execute("""
-	    Select *
-	    From SellTriggers
-	    Where user_id = '{}' and stock_sym = '{}'
-	    """.format(user_id, stock_sym))
+	        Select *
+	        From SellTriggers
+	        Where user_id = '{}' and stock_sym = '{}'
+	        """.format(user_id, stock_sym))
 
             result = self.cur.fetchone()
 
         #print(result)
 
         return result
+
+    # Input: NONE
+    # Output: A list of all completed triggers
+    # If no record is found returns an empty list
+    def selectAllTrigger(self):
+        self.cur.execute("""
+	    Select *
+	    From BuyTriggers
+	    Where trigger_amount > 0
+	    """)
+
+        buyResult = self.cur.fetchall()
+
+        self.cur.execute("""
+	    Select *
+	    From SellTriggers
+	    Where trigger_amount > 0
+	    """)
+
+        sellResult = self.cur.fetchall()
+
+
+
+        return buyResult + sellResult
+
 
     # Input: (user_id, stock_sym, reserve, trigger_amount)
     # Output: The record that is created/updated
@@ -274,7 +299,7 @@ class Database:
         #print('good')
 
         return result
-        
+
 
     # Input: (user_id, stock_sym)
     # Output: One record that is deleted
@@ -302,11 +327,11 @@ class Database:
         #print(result)
 
         return result
-        
-        
+
+
     ##
     ## SellTriggers
-    ## 
+    ##
 
     # Input: (user_id, stock_sym)
     # Output: (user_id, stock_sym, amount, reserve, trigger_amount)
@@ -351,7 +376,7 @@ class Database:
         #print('good')
 
 #        return result
-        
+
 
     # Input: (user_id, stock_sym)
     # Output: One record that is deleted
@@ -417,7 +442,7 @@ class Database:
             ("'" + action + "'") if action else 'Null',
             ("'" + error_msg + "'") if error_msg else 'Null',
             ("'" + debug_msg + "'") if debug_msg else 'Null')
-            
+
         )
         # The format looks weird to accommodate None -> Null
 
@@ -456,22 +481,22 @@ class Database:
 
     # Input: user_id
     # Output:   (user_id, funds),
-    #           [(user_id, stock_sym, amount), ...], 
+    #           [(user_id, stock_sym, amount), ...],
     #           [(user_id, command, stock_sym, amount, funds, timeadded), ...], all transactions (dumplog)
     #           [(user_id, command, stock_sym, amount, funds, timeadded), ...]  triggers
     # If any don't exist will return NONE, [], [], []
     def displaySummary(self, user_id):
         balance = self.selectUsers(user_id)
-        
+
         self.cur.execute("""
 	    Select *
     	From account
 	    Where user_id = '{}';
     	""".format(user_id))
         stocks = self.cur.fetchall()
-        
+
         transactionHistory = self.dumpAudit(user_id)
-        
+
         self.cur.execute("""
 	    Select *
 	    From pending
@@ -479,6 +504,5 @@ class Database:
 	    Order By timeadded desc
 	    """.format(user_id))
         triggers = self.cur.fetchall()
-        
+
         return balance, stocks, transactionHistory, triggers
-        
