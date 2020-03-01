@@ -61,6 +61,7 @@ def check_trigger():
             # Compare quote with trigger amount
             if current_quote[0] <= trigger['triggerAmount']:
                 # update the DB
+                funds = selectUsers(trigger['user'])
                 db.changeUsers(trigger['user'], trigger['funds'] - current_quote[0])
                 # create or update the stock for the user
                 db.changeAccount(trigger['user'], trigger['stock_sym'], trigger['amountOfStock'])
@@ -81,9 +82,9 @@ def check_trigger():
 
 # Should handle checking every few seconds
 def main():
-    timer = threading.Timer(5.0, check_trigger)
-    timer.start()
-
+    while True:
+        check_trigger()
+        time.sleep(5)
 
 if __name__ == "__main__":
     main()
