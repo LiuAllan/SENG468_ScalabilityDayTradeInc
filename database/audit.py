@@ -3,76 +3,76 @@ import time
 import re
 import pickle
 
-def userCommand(line):
+def userCommand(item):
     string = "    <userCommand>\n"
-    string += "        <timestamp>" + str(line['timestamp']) + "</timestamp>\n"
-    string += "        <server>" + line['server'] + "</server>\n"
-    string += "        <transactionNum>" + str(line['transaction_num']) + "<transactionNum>\n"
-    string += "        <command>" + line['command'] + "</command>\n"
-    string += "        <username>" + line['user'] + "</username>\n"
-    string += "        <funds>" + str(line['amount']) + "</funds>\n"
+    string += "        <timestamp>" + str(item[3]) + "</timestamp>\n"
+    string += "        <server>" + str(item[8]) + "</server>\n"
+    string += "        <transactionNum>" + str(item[0]) + "<transactionNum>\n"
+    string += "        <command>" + str(item[2]) + "</command>\n"
+    string += "        <username>" + str(item[1]) + "</username>\n"
+    string += "        <funds>" + str(item[6]) + "</funds>\n"
     string += "    </userCommand>\n"
     return string
 
-def quoteServer(line):
+def quoteServer(item):
     string = "    <quoteServer>\n"
-    string += "        <timestamp>" + str(line['timestamp']) + "</timestamp>\n"
-    string += "        <server>" + line['server'] + "</server>\n"
-    string += "        <transactionNum>" + str(line['transaction_num']) + "<transactionNum>\n"
-    string += "        <quoteServerTime>" + str(line['q_time']) + "</quoteServerTime>\n"
-    string += "        <username>" + line['user'] + "</username>\n"
-    string += "        <stockSymbol>" + line['stock_sym'] + "</stockSymbol>\n"
-    string += "        <price>" + line['quote_price'] + "</price>\n"
-    string += "        <cryptokey>" + line['crypto_key'] + "</cryptokey>\n"
+    string += "        <timestamp>" + str(item[3]) + "</timestamp>\n"
+    string += "        <server>" + str(item[8]) + "</server>\n"
+    string += "        <transactionNum>" + str(item[0]) + "<transactionNum>\n"
+    string += "        <quoteServerTime>" + str(item[11]) + "</quoteServerTime>\n"
+    string += "        <username>" + str(item[1]) + "</username>\n"
+    string += "        <stockSymbol>" + str(item[4]) + "</stockSymbol>\n"
+    string += "        <price>" + str(item[10]) + "</price>\n"
+    string += "        <cryptokey>" + str(item[7]) + "</cryptokey>\n"
     string += "    </quoteServer>\n"
     return string
 
-def accountTransaction(line):
+def accountTransaction(item):
     string = "    <accountTransaction>\n"
-    string += "        <timestamp>" + str(line['timestamp']) + "</timestamp>\n"
-    string += "        <server>" + line['server'] + "</server>\n"
-    string += "        <transactionNum>" + str(line['transaction_num']) + "<transactionNum>\n"
-    string += "        <action>" + line['command'] + "</action>\n"
-    string += "        <username>" + line['user'] + "</username>\n"
-    string += "        <funds>" + str(line['amount']) + "</funds>\n"
+    string += "        <timestamp>" + str(item[3]) + "</timestamp>\n"
+    string += "        <server>" + str(item[8]) + "</server>\n"
+    string += "        <transactionNum>" + str(item[0]) + "<transactionNum>\n"
+    string += "        <action>" + str(item[2]) + "</action>\n"
+    string += "        <username>" + str(item[1]) + "</username>\n"
+    string += "        <funds>" + str(item[5]) + "</funds>\n"
     string += "    </accountTransaction>\n"
     return string
 
-def systemEvent(line):
+def systemEvent(item):
     string = "    <systemEvent>\n"
-    string += "        <timestamp>" + str(line['timestamp']) + "</timestamp>\n"
-    string += "        <server>" + line['server'] + "</server>\n"
-    string += "        <transactionNum>" + str(line['transaction_num']) + "<transactionNum>\n"
-    string += "        <command>" + line['command'] + "</command>\n"
-    string += "        <username>" + line['user'] + "</username>\n"
-    string += "        <stockSymbol>" + line['stock_sym'] + "</stockSymbol>\n"
-    string += "        <funds>" + str(line['funds']) + "</funds>\n"
+    string += "        <timestamp>" + str(item[3]) + "</timestamp>\n"
+    string += "        <server>" + str(item[8]) + "</server>\n"
+    string += "        <transactionNum>" + str(item[0]) + "<transactionNum>\n"
+    string += "        <command>" + str(item[2]) + "</command>\n"
+    string += "        <username>" + str(item[1]) + "</username>\n"
+    string += "        <stockSymbol>" + str(item[4]) + "</stockSymbol>\n"
+    string += "        <funds>" + str(item[6]) + "</funds>\n"
     string += "    </systemEvent>\n"
     return string
 
-def errorEvent(line):
+def errorEvent(item):
     string = "    <errorEvent>\n"
-    string += "        <timestamp>" + str(line['timestamp']) + "</timestamp>\n"
-    string += "        <server>" + line['server'] + "</server>\n"
-    string += "        <transactionNum>" + str(line['transaction_num']) + "<transactionNum>\n"
-    string += "        <command>" + line['command'] + "</command>\n"
-    string += "        <username>" + line['user'] + "</username>\n"
-    string += "        <stockSymbol>" + line['stock_sym'] + "</stockSymbol>\n"
-    string += "        <funds>" + str(line['funds']) + "</funds>\n"
-    string += "        <errorMessage>" + line['error_msg'] + "</errorMessage>\n"
+    string += "        <timestamp>" + str(item[3]) + "</timestamp>\n"
+    string += "        <server>" + str(item[8]) + "</server>\n"
+    string += "        <transactionNum>" + str(item[0]) + "<transactionNum>\n"
+    string += "        <command>" + str(item[2]) + "</command>\n"
+    string += "        <username>" + str(item[1]) + "</username>\n"
+    string += "        <stockSymbol>" + str(item[4]) + "</stockSymbol>\n"
+    string += "        <funds>" + str(item[6]) + "</funds>\n"
+    string += "        <errorMessage>" + str(item[13]) + "</errorMessage>\n"
     string += "    </errorEvent>\n"
     return string
 
-def debugEvent(line):
+def debugEvent(item):
     string = "    <debugEvent>\n"
-    string += "        <timestamp>" + str(line['timestamp']) + "</timestamp>\n"
-    string += "        <server>" + line['server'] + "</server>\n"
-    string += "        <transactionNum>" + str(line['transaction_num']) + "<transactionNum>\n"
-    string += "        <command>" + line['command'] + "</command>\n"
-    string += "        <username>" + line['user'] + "</username>\n"
-    string += "        <stockSymbol>" + line['stock_sym'] + "</stockSymbol>\n"
-    string += "        <funds>" + str(line['funds']) + "</funds>\n"
-    string += "        <debugMessage>" + line['debug_msg'] + "</debugMessage>\n"
+    string += "        <timestamp>" + str(item[3]) + "</timestamp>\n"
+    string += "        <server>" + str(item[8]) + "</server>\n"
+    string += "        <transactionNum>" + str(item[0]) + "<transactionNum>\n"
+    string += "        <command>" + str(item[2]) + "</command>\n"
+    string += "        <username>" + str(item[1]) + "</username>\n"
+    string += "        <stockSymbol>" + str(item[4]) + "</stockSymbol>\n"
+    string += "        <funds>" + str(item[6]) + "</funds>\n"
+    string += "        <debugMessage>" + str(item[14]) + "</debugMessage>\n"
     string += "    </debugEvent>\n"
     return string
 
@@ -89,9 +89,10 @@ def main():
         try:
             line = pickle.loads(c.recv(4096))
             print('line received is ', line)
-            c.send('info received as type {}'.format(type(line)).encode())
 			
             redirect(line)
+            audit_print = redirect(line)
+            #c.send(audit_print.encode())
 			
             c.close()
         except IOError as err:
@@ -109,77 +110,87 @@ def main():
     #sell_amount = 0.00
 def redirect(line):
     log = ""
-    if(line['command'] == "ADD"):
-        print("ADD")
-        log += userCommand(line)
-        log += accountTransaction(line)
-    elif (line['command'] == "QUOTE"):
-        print("QUOTE")
-        log += quoteServer(usr = line[1])
-    elif (line['command'] == "BUY"):
-        print("BUY")
-        buy_amount += float(line[3])
-        #log += userCommand(line[0], line[1], usr_funds)
-        #log += systemEvent()
-        #log += quoteServer()
-        #log += accountTransaction()
-    elif (line['command'] == "COMMIT_BUY"):
-        print("COMMIT_BUY")
-        #log += userCommand(line[0], line[1], line[2])
-        #log += systemEvent()
-    elif (line['command'] == "CANCEL_BUY"):
-        print("CANCEL_BUY")
-        #log += userCommand()
-        #log += systemEvent()
-    elif (line['command'] == "SELL"):
-        print("SELL")
-        #log += userCommand(line[0], line[1], usr_funds)
-        #log += systemEvent()
-        #log += quoteServer()
-        #log += accountTransaction()
-    elif (line['command'] == "COMMIT_SELL"):
-        print("COMMIT_SELL")
-        #log += userCommand(line[0], line[1], line[2])
-        #log += systemEvent()
-    elif (line['command'] == "CANCEL_SELL"):
-        print("CANCEL_SELL")
-        #log += userCommand(line[0], line[1], line[2])
-        #log += systemEvent()
-    elif (line['command'] == "SET_BUY_AMOUNT"):
-        print("SET_BUY_AMOUNT")
-        #log += userCommand(line[0], line[1], line[2])
-        #log += systemEvent()
-    elif (line['command'] == "CANCEL_SET_BUY"):
-        print("CANCEL_SET_BUY")
-        #log += userCommand(line[0], line[1], line[2])
-        #log += systemEvent()
-    elif (line['command'] == "SET_BUY_TRIGGER"):
-        print("SET_BUY_TRIGGER")
-        #log += userCommand(line[0], line[1], line[2])
-        #log += systemEvent()
-    elif (line['command'] == "SET_SELL_AMOUNT"):
-        print("SET_SELL_AMOUNT")
-        #log += userCommand(line[0], line[1], line[2])
-        #log += systemEvent()
-    elif (line['command'] == "SET_SELL_TRIGGER"):
-        print("SET_SELL_TRIGGER")
-        #log += userCommand(line[0], line[1], line[2])
-        #log += systemEvent()
-    elif (line['command'] == "CANCEL_SET_SELL"):
-        print("CANCEL_SET_SELL")
-        #log += userCommand(line[0], line[1], line[2])
-        #log += systemEvent()
-    elif (line['command'] == "DISPLAY_SUMMARY"):
-        print("DISPLAY_SUMMARY")
-        #log += userCommand(line[0], line[1], line[2])
-    elif (line['command'] == "DUMPLOG"):
-        print("DUMPLOG")
-        log_string = '<?xml version="1.0"?>\n<log>\n\n' + log + '\n</log>'
-        xml_file = open(line[1], "w")
-        xml_file.write(log_string)
+    for item in line:
+        if(item[2] == "ADD"):
+            print("ADD")
+            log += userCommand(line)
+            log += accountTransaction(line)
+        elif (item[2] == "QUOTE"):
+            print("QUOTE")
+            log += quoteServer(usr = line[1])
+        elif (item[2] == "BUY"):
+            print("BUY")
+            #buy_amount += float(line[3])
+            log += userCommand(item)
+            if item[13] is not None:
+                log += errorEvent(item)
+            elif item[14] is not None:
+                log += debugEvent(item)
+            else:
+                log += systemEvent(item)
+                log += quoteServer(item)
+                log += accountTransaction(item)
+        elif (item[2] == "COMMIT_BUY"):
+            print("COMMIT_BUY")
+            #log += userCommand(item)
+            #log += systemEvent(item)
+        elif (item[2] == "CANCEL_BUY"):
+            print("CANCEL_BUY")
+            #log += userCommand(item)
+            #log += systemEvent(item)
+        elif (item[2] == "SELL"):
+            print("SELL")
+            #log += userCommand(item)
+            #log += systemEvent(item)
+            #log += quoteServer(item)
+            #log += accountTransaction(item)
+        elif (item[2] == "COMMIT_SELL"):
+            print("COMMIT_SELL")
+            #log += userCommand(item)
+            #log += systemEvent(item)
+        elif (item[2] == "CANCEL_SELL"):
+            print("CANCEL_SELL")
+            #log += userCommand(item)
+            #log += systemEvent(item)
+        elif (item[2] == "SET_BUY_AMOUNT"):
+            print("SET_BUY_AMOUNT")
+            #log += userCommand(item)
+            #log += systemEvent(item)
+        elif (item[2] == "CANCEL_SET_BUY"):
+            print("CANCEL_SET_BUY")
+            #log += userCommand(item)
+            #log += systemEvent(item)
+        elif (item[2] == "SET_BUY_TRIGGER"):
+            print("SET_BUY_TRIGGER")
+            #log += userCommand(item)
+            #log += systemEvent(item)
+        elif (item[2] == "SET_SELL_AMOUNT"):
+            print("SET_SELL_AMOUNT")
+            #log += userCommand(item)
+            #log += systemEvent(item)
+        elif (item[2] == "SET_SELL_TRIGGER"):
+            print("SET_SELL_TRIGGER")
+            #log += userCommand(item)
+            #log += systemEvent(item)
+        elif (item[2] == "CANCEL_SET_SELL"):
+            print("CANCEL_SET_SELL")
+            #log += userCommand(item)
+            #log += systemEvent(item)
+        elif (item[2] == "DISPLAY_SUMMARY"):
+            print("DISPLAY_SUMMARY")
+            #log += userCommand(item)
+        elif (item[2] == "DUMPLOG"):
+            print("DUMPLOG")
+            log_string = '<?xml version="1.0"?>\n<log>\n\n' + log + '\n</log>'
+            xml_file = open(line[1], "w")
+            xml_file.write(log_string)
+
+    log_string = '<?xml version="1.0"?>\n<log>\n\n' + log + '\n</log>'
+    xml_file = open('log.xml', "w")
+    xml_file.write(log_string)
 
     #print(log_string)
-    print(log)
+    print(log_string)
 	
 
 
