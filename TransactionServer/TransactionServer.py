@@ -32,6 +32,7 @@
 
 
 # from flask import Flask
+import pickle
 import socket
 import ast
 import time
@@ -472,6 +473,12 @@ def logic(message):
             print(message['user'] + ', ' + message.get('filename', ''))
             audit_dump = db.dumpAudit(message['user'])
             #send audit_dump to audit.py, possibly via socket
+            auditserverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            auditserverSocket.connect(('localhost', 44409))
+			
+            auditserverSocket.send(pickle.dumps(audit_dump))
+			
+            auditserverSocket.close()
 
     elif message['command'] == 'DISPLAY_SUMMARY':
         # print('display summary for ' + message['user'])
