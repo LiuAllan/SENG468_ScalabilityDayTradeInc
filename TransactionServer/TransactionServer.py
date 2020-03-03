@@ -135,7 +135,7 @@ def logic(message):
             remaining_amt = db.selectUsers(message['user'])[1] - buy_amt
 
             # We need to include the timestamp to know if it is still valid after 60 seconds
-            timestamp = int(current_quote[3])
+            timestamp = curr_time()
 
             # set pending buy to latest values of buy and update with timestamp
             db.addPending(message['user'], message['command'], message['stock_sym'], amountOfStock, remaining_amt, timestamp)
@@ -157,6 +157,7 @@ def logic(message):
         #Compare time with timestamp
         buy_queue = db.selectPending(message['user'], 'BUY')
         if buy_queue is not None:
+            print('curr time is {} and pending time is {}'.format(curr_time()-60000, buy_queue[5]))
             if curr_time() - 60000 <= int(buy_queue[5]):
                 # update with the most recent amount and stock symbol
                 amount = buy_queue[4]
@@ -206,13 +207,14 @@ def logic(message):
                 curr_price = int(float(current_quote[0]) * 100)
 
                 amountOfStock = amount // curr_price
-
+                print('amount of stock is {}', amountOfStock)
+                print('account is {}', db.selectAccount(message['user'], message['stock_sym']))
                 if db.selectAccount(message['user'], message['stock_sym'])[2] >= amountOfStock:
                     # Calculates exactly how much I am able to sell
                     sell_amt = amountOfStock * curr_price
                     remaining_amt = db.selectUsers(message['user'])[1] + sell_amt
 
-                    timestamp = int(current_quote[3])
+                    timestamp = curr_time()
 
                     # Sell the amount by updating the DB
                     db.addPending(message['user'], message['command'], message['stock_sym'], amountOfStock, remaining_amt, timestamp)
@@ -452,7 +454,7 @@ def logic(message):
         if triggerAmount is None:
             response_msg = "There are no Trigger for this stock"
             # audit the error
-        if stocks_owned is None:
+        elif stocks_owned is None:
             response_msg = "Account does not exist"
         else:
             # Add stocks back to the user account
