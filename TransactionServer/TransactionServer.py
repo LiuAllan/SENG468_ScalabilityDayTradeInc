@@ -185,16 +185,21 @@ def logic(message):
         else:
             response_msg = "No buy order pending. Cancelled COMMIT BUY."
             # audit the error here
-            db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds = db.selectUsers(message['user'])[1], error_msg = response_msg)
+            db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds = db.selectUsers(message['user'])[1], error_msg = response_msg, stock_sym = 'NaN')
         return response_msg
 ##### COMMIT_BUY FINISHED #####
 
     elif message['command'] == 'CANCEL_BUY':
         # print(message['user'])
-        db.removePending(message['user'], 'BUY')
-        response_msg = "Cancelled Buy"
-        # audit for cancel buy
-        db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds = db.selectUsers(message['user'])[1])
+        user = db.selectPending(message['user'], 'BUY')
+        if user is None:
+            response_msg = "No buy order pending. Cancelled CANCEL BUY."
+            db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds = db.selectUsers(message['user'])[1], error_msg = response_msg, stock_sym = 'NaN')
+        else:
+            db.removePending(message['user'], 'BUY')
+            response_msg = "Cancelled Buy"
+            # audit for cancel buy
+            db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds = db.selectUsers(message['user'])[1], stock_sym = user[2])
         return response_msg
 ##### CANCEL_BUY FINISHED #####
 
@@ -254,7 +259,7 @@ def logic(message):
                 # create or update the stock for the user
                 db.changeAccount(message['user'], stock_sym, amountOfStock)
 
-                db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], stock_sym, funds = db.selectUsers(message['user'])[1], action = 'remove')
+                db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], stock_sym, funds = db.selectUsers(message['user'])[1], action = 'add')
 
                 # Delete the pending records
                 db.removePending(message['user'], 'SELL')
@@ -268,7 +273,7 @@ def logic(message):
         else:
             response_msg = "No sell order pending. Cancelled COMMIT SELL."
             # audit error here
-            db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds = db.selectUsers(message['user'])[1], error_msg = response_msg)
+            db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds = db.selectUsers(message['user'])[1], error_msg = response_msg, stock_sym = 'NaN')
 
         return response_msg
 ##### COMMIT_SELL FINISHED #####
@@ -276,9 +281,14 @@ def logic(message):
 
     elif message['command'] == 'CANCEL_SELL':
         # print(message['user'])
-        db.removePending(message['user'], 'SELL')
-        response_msg = "Cancelled Sell"
-        db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds = db.selectUsers(message['user'])[1])
+        user = db.selectPending(message['user'], 'SELL')
+        if user is None:
+            response_msg = "No sell order pending. Cancelled CANCEL SELL."
+            db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds = db.selectUsers(message['user'])[1], error_msg = response_msg, stock_sym = 'NaN')
+        else:
+            db.removePending(message['user'], 'SELL')
+            response_msg = "Cancelled Sell"
+            db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds = db.selectUsers(message['user'])[1], stock_sym = user[2])
         return response_msg
 
 ##### CANCEL_SELL FINISHED #####
