@@ -87,7 +87,13 @@ def main():
         c, addr = auditServerSocket.accept()
         print('audit log accepted...')
         try:
-            line = pickle.loads(c.recv(4096))
+            data = []
+            while True:
+                packet = c.recv(4096)
+                if not packet: break
+                data.append(packet)
+            line = pickle.loads(b"".join(data))
+            #line = pickle.loads(c.recv(4096))
             print('line received is ', line)
 			
             redirect(line)
@@ -113,11 +119,11 @@ def redirect(line):
     for item in line:
         if(item[2] == "ADD"):
             print("ADD")
-            log += userCommand(line)
-            log += accountTransaction(line)
+            log += userCommand(item)
+            log += accountTransaction(item)
         elif (item[2] == "QUOTE"):
             print("QUOTE")
-            log += quoteServer(usr = line[1])
+            log += quoteServer(item)
         elif (item[2] == "BUY"):
             print("BUY")
             #buy_amount += float(line[3])
