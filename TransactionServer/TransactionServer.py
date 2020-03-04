@@ -209,7 +209,8 @@ def logic(message):
                 amountOfStock = amount // curr_price
                 print('amount of stock is {}', amountOfStock)
                 print('account is {}', db.selectAccount(message['user'], message['stock_sym']))
-                if db.selectAccount(message['user'], message['stock_sym'])[2] >= amountOfStock:
+                new_account = db.selectAccount(message['user'], message['stock_sym'])
+                if new_account and new_account[2] >= amountOfStock:
                     # Calculates exactly how much I am able to sell
                     sell_amt = amountOfStock * curr_price
                     remaining_amt = db.selectUsers(message['user'])[1] + sell_amt
@@ -326,7 +327,7 @@ def logic(message):
                     reserve = SetbuyAmount // amount
                     
                     db.changeTrigger(message['user'], message['command'], message['stock_sym'], reserve, amount)
-                    db.addAudit(message['user'],  curr_time(), 'Transaction_server', message['command'], message['stock_sym'], funds)
+                    db.addAudit(message['user'],  curr_time(), 'Transaction_server', message['command'], message['stock_sym'], funds = funds)
                     response_msg = "Buy trigger is set"
                 else:
                     response_msg = "Buy Trigger amount is more than the Set Trigger amount"
@@ -503,6 +504,7 @@ def logic(message):
         # The audit
         if transactionHistory:
             for trans in transactionHistory:
+                # print(trans)
                 funds = str(int(trans[6] / 100)) + '.' + "{:02d}".format(int(trans[6] % 100))
                 if trans[5] is not None:
                     summaryAmount = str(int(trans[5] / 100)) + '.' + "{:02d}".format(int(trans[5] % 100))
