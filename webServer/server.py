@@ -56,15 +56,15 @@ while True:
         print('sent message to transaction server')
 
         # receive message back from transaction server
-        # strbuffer = ''
+        strbuffer = ''
         data = transerverSocket.recv(4096).decode()
         # print(data)
-        # while data:
-        #     strbuffer += data
-        #     data = transerverSocket.recv(4096).decode()
+        while data:
+            strbuffer += data
+            data = transerverSocket.recv(4096).decode()
 
         # send response gotten from transaction server to workload generator
-        connectionSocket.send(data.encode())
+        connectionSocket.send(strbuffer.encode())
 
         # close the sockets
         transerverSocket.close()
