@@ -16,11 +16,26 @@ import threading
 #     - send the new quote back to transaction server
 # - Quote timestamp is based on local time***
 
+cache = {
+    "A":
+    {
+        'price': 0,
+        'user': "",
+        'timestamp': 0,
+        'cryptokey': "",
+        'expire': 0
+    }
+}
+
+
 # https://www.geeksforgeeks.org/queue-in-python/
 arrival_queue = Queue.Queue()
+lock_cache = threading.Semaphore(1)
+
 
 def curr_time():
-	return int(time.time() * 1000)
+    return int(time.time() * 1000)
+
 
 # Need to change this
 def get_quote(message):
@@ -30,15 +45,59 @@ def get_quote(message):
     print('connected to quote server')
     quoteserverSocket.send((str(message['stock_sym'] + ',' + message['user']) + '\n').encode())
     print('sent symbol and user to quote server')
-    reply = quoteserverSocket.recv(1024).decode()
-    reply = ast.literal_eval(str(reply.split(',')))
+    response = quoteserverSocket.recv(1024).decode()
+
+    response = response.split(',')
+
+    reply = {
+        "price": response[0],
+        "stock_id": response[1],
+        "user": response[2],
+        "timestamp": response[3],
+        "cryptokey": response[4],
+        "expire": now() + 60000
+    }
+
+    # reply = ast.literal_eval(str(reply.split(',')))
     quoteserverSocket.close()
     return reply
 
+
 def check_cache(stock_sym):
+    cache_lock.acquire()
+    if stock_sym in cache:
+        if cache[stock_sym]["expire"] >= curr_time():
+            reply = {
+                "result": "match",
+                "price": cache[stock_sym]["price"],
+                "stock_id": stock_sym,
+                "user": cache[stock_sym]["user"],
+                "timestamp": cache[stock_sym]["timestamp"],
+                "cryptokey": cache[stock_sym]["cryptokey"],
+                "expire": cache[stock_sym]["expire"]
+            }
+        else:
+            reply = {"result": "expired"}
+    else:
+        reply = {"result": "none"}
+    lock_cache.release()
+    return reply
 
 
 def update_cache(quote):
+    lock_cache.acquire()
+
+    cache[quote["stock_sym"]] = {
+        "price": quote["price"],
+        "user": quote["user"],
+        "timestamp": quote["timestamp"],
+        "cryptokey": quote["cryptokey"],
+        "expire": quote["expire"]  # curr_time() + 60 seconds
+    }
+
+    lock_cache.release()
+
+    return
 
 
 def thread_controller():
@@ -50,13 +109,24 @@ def thread_controller():
         message = ast.literal_eval(message)
 
         if message["command"] == "BUY" or message["command"] == "SELL":
-            # scan the cache
+            # check the cache
+            quote = check_cache(message["stock_sym"])
+            if quote["result"] != "match":
+                quote = get_quote(message)
+                update_cache(quote)
         elif message["command"] == "QUOTE":
-
+            quote = check_cache(message["stock_sym"])
+            if quote["result"] != "match":
+                quote = get_quote(message)
+                update_cache(quote)
         elif message["command"] == "TRIGGER":
-
+            quote = check_cache(message["stock_sym"])
+            if quote["result"] != "match":
+                quote = get_quote(message)
+                update_cache(quote)
         else:
-            print("Quote Cache server had an issue getting quote")
+            print("Quote Cache didn't detect any valid commands")
+            quote = cache
 
         connection.send(str(quote))
         connection.close()
@@ -64,12 +134,13 @@ def thread_controller():
         arrival_queue.task_done()
     return
 
+
 # Set up the socket so it can receive data
 def listen():
     try:
         # Prepare a server socket
         quoteCacheSocket.bind(('localhost', 44404))
-    except socket.error
+    except socket.error:
         print("Failed binding socket to IP and port")
         return 0
 
@@ -77,6 +148,7 @@ def listen():
     quoteCacheSocket.listen(10)
 
     return 1
+
 
 def main():
     # Make threads
@@ -92,5 +164,6 @@ def main():
             connection, addr = quoteCacheSocket.accept()
             arrival_queue.put(connection)
 
+
 if __name__ == "__main__":
-	main()
+    main()

@@ -24,3 +24,4 @@ $RECYCLE.BIN/
 *.xml
 *.pyc
 webServer/.idea/webServer.iml
+quoteServer/quoteCache.py___jb_tmp___
