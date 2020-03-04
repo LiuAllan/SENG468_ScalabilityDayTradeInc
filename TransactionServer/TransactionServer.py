@@ -69,8 +69,8 @@ def logic(message):
     if message['command'] and not acceptable_string(message['command']):
         return "Command is invalid"
 
-    if message['user'] and not acceptable_string(message['user']):
-        return "User id is invalid"
+    #if message['user'] and not acceptable_string(message['user']):
+        #return "User id is invalid"
 
     if stock_sym and not acceptable_string(stock_sym):
         return "Stock symbol is invalid"
@@ -467,21 +467,18 @@ def logic(message):
         return response_msg
 
     elif message['command'] == 'DUMPLOG':
-        if len(message) == 1:
-            print('Error in usage: DUMPLOG [userid]')
-        elif len(message) == 2:
-            #security feature for users accessing other user logs
-            print('user access denied')
-        else:
-            print(message['user'] + ', ' + message.get('filename', ''))
-            audit_dump = db.dumpAudit(message['user'])
-            #send audit_dump to audit.py, possibly via socket
-            auditserverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            auditserverSocket.connect(('localhost', 44409))
+        #print(message['user'] + ', ' + message.get('filename', ''))
+        #print('message is ', message)
+        audit_dump = db.dumpAudit()
+        #send audit_dump to audit.py, possibly via socket
+        auditserverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        auditserverSocket.connect(('localhost', 44409))
+
+        print('audit_dump is of type {}'.format(type(audit_dump)))
+		
+        auditserverSocket.send(pickle.dumps(audit_dump))
 			
-            auditserverSocket.send(pickle.dumps(audit_dump))
-			
-            auditserverSocket.close()
+        auditserverSocket.close()
 
     elif message['command'] == 'DISPLAY_SUMMARY':
         # print('display summary for ' + message['user'])
