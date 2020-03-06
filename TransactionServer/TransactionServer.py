@@ -113,11 +113,11 @@ def logic(message):
     elif message['command'] == 'QUOTE':
         current_quote = get_quote(message)
         print('got current quote')
-        print(current_quote)
-        response_msg = "Quote for " + str(message['stock_sym']) + ':' + str(current_quote[0])
+        current_quote = ast.literal_eval(current_quote)
+        response_msg = "Quote for " + str(message['stock_sym']) + ':' + str(current_quote['price'])
         print(response_msg)
         # audit the quote
-        db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], message['stock_sym'], funds = db.selectUsers(message['user'])[1], stock_price = current_quote[0], quote_time = current_quote[3], cryptokey = current_quote[4])
+        db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], message['stock_sym'], funds = db.selectUsers(message['user'])[1], stock_price = current_quote['price'], quote_time = current_quote['timestamp'], cryptokey = current_quote['cryptokey'])
         return response_msg
 ##### QUOTE FINISHED #####
 
@@ -126,7 +126,8 @@ def logic(message):
         #First, check the user balance if they have enough money
         if db.selectUsers(message['user'])[1] >= amount:
             current_quote = get_quote(message)
-            curr_price = int(float(current_quote[0]) * 100)
+            current_quote = ast.literal_eval(current_quote)
+            curr_price = int(float(current_quote['price']) * 100)
 
             # calculate the amount user can buy with their funds.
             amountOfStock = amount // curr_price
@@ -142,7 +143,7 @@ def logic(message):
 
             response_msg = "Placed an order to Buy " + str(message['stock_sym']) + ":" + format_money(curr_price)
             # adding audit for buy
-            db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], message['stock_sym'], funds = db.selectUsers(message['user'])[1], cryptokey = current_quote[4], stock_price = current_quote[0], quote_time = current_quote[3], amount = amount)
+            db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], message['stock_sym'], funds = db.selectUsers(message['user'])[1], cryptokey = current_quote['cryptokey'], stock_price = current_quote['price'], quote_time = current_quote['timestamp'], amount = amount)
 
         else:
             response_msg = "Not enough funds in user %s's account to purchase stock" % (message['user'])
@@ -209,7 +210,8 @@ def logic(message):
         if amount > 0:
             # Check the user's records.
                 current_quote = get_quote(message)
-                curr_price = int(float(current_quote[0]) * 100)
+                current_quote = ast.literal_eval(current_quote)
+                curr_price = int(float(current_quote['price']) * 100)
 
                 amountOfStock = amount // curr_price
                 print('amount of stock is {}', amountOfStock)
@@ -225,7 +227,7 @@ def logic(message):
                     # Sell the amount by updating the DB
                     db.addPending(message['user'], message['command'], message['stock_sym'], amountOfStock, remaining_amt, timestamp)
 
-                    db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], message['stock_sym'], funds = db.selectUsers(message['user'])[1], cryptokey = current_quote[4], stock_price = current_quote[0], quote_time = current_quote[3], amount = amount)
+                    db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], message['stock_sym'], funds = db.selectUsers(message['user'])[1], cryptokey = current_quote['cryptokey'], stock_price = current_quote['price'], quote_time = current_quote['timestamp'], amount = amount)
                     response_msg = "Placed an order to Sell " + str(message['stock_sym']) + ":" + format_money(curr_price)
 
                 else:
@@ -500,7 +502,7 @@ def logic(message):
         userBalance, stocks, transactionHistory, triggers = db.displaySummary(message['user'])
 
         userBalance = str(int(userBalance[1] / 100)) + '.' + "{:02d}".format(int(userBalance[1] % 100))
-        response_msg = "Summary for %s \n Current Balance: $%s \n" % (message['user'], userBalance)
+        response_msg = "Summary for %s \nCurrent Balance: $%s \n" % (message['user'], userBalance)
 
         # Format the stocks, pending transactions, and triggers
 
@@ -545,19 +547,21 @@ def format_money(money):
 def get_quote(message):
     quoteserverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # could possibly make this faster by splitting stock symbols up
-    quoteserverSocket.connect(('quoteserve.seng.uvic.ca', 4442))
+    # quoteserverSocket.connect(('quoteserve.seng.uvic.ca', 4442))
+    quoteserverSocket.connect(('localhost', 44407))
     print('connected to quote server')
 
     # test = str(message['stock_sym'] + ',' + message['user']) + '\n'
     # print(test)
-    quoteserverSocket.send((str(message['stock_sym'] + ',' + message['user']) + '\n').encode())
+    #quoteserverSocket.send((str(message['stock_sym'] + ',' + message['user']) + '\n').encode())
+    quoteserverSocket.send(str(message).encode())
     print('sent symbol and user to quote server')
     reply = quoteserverSocket.recv(1024).decode()
     # reply_dict = {'quote': None, 'sym': None, 'userid': None, 'timestamp': None, 'cryptokey': None}
     # split_reply = reply.split(',')
     # reply[0]
-    # print(type(reply))
-    reply = ast.literal_eval(str(reply.split(',')))
+    print(reply)
+    # reply = ast.literal_eval(str(reply.split(',')))
     quoteserverSocket.close()
     return reply
 
