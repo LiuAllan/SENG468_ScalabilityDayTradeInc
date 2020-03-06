@@ -36,12 +36,12 @@ def curr_time():
 
 def get_quote(message):
     quoteserverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    quoteserverSocket.connect(('quoteserve.seng.uvic.ca', 4442))
+    quoteserverSocket.connect(('localhost', 44407))
     print('connected to quote server')
-    quoteserverSocket.send((str(message['stock_sym'] + ',' + message['user']) + '\n').encode())
+    quoteserverSocket.send(str(message).encode())
     print('sent symbol and user to quote server')
     reply = quoteserverSocket.recv(1024).decode()
-    reply = ast.literal_eval(str(reply.split(',')))
+    print(reply)
     quoteserverSocket.close()
     return reply
 

@@ -1,34 +1,58 @@
 import psycopg2
+import psycopg2.pool
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+from contextlib import contextmanager
 
+dbpool = None
+
+def setUp():
+    # Connecting to generic user
+    conn = psycopg2.connect("dbname=postgres host=localhost user=postgres password=postgres")
+    cur = conn.cursor()
+    file = open("DBInit.sql", "r")
+    conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+    # Set Database and user
+    for line in file:
+        print(line)
+        cur.execute(line)
+    file.close()
+    cur.close()
+    conn.commit()
+    conn.close()
+
+    global dbpool
+    dbpool = psycopg2.pool.ThreadedConnectionPool(1,10,host="localhost",
+                                                    dbname="daytrading",
+                                                    user="seng468",
+                                                    password="seng468",
+                                                    )
+    # Connecting to seng468 user
+    file = open("daytrading.sql", "r")
+    # Set up tables
+    with db_cursor() as cur:
+        cur.execute(file.read())
+    file.close()
+
+@contextmanager
+def db_cursor():
+    conn = dbpool.getconn()
+    try:
+        with conn.cursor() as cur:
+            yield cur
+            conn.commit()
+    except:
+        conn.rollback()
+        raise
+    finally:
+        dbpool.putconn(conn)
+
+            #with dbcursor() as cur:
+            # cur.execute()
 
 class Database:
 
-    def __init__(self):
-        # Connecting to generic user
-        self.conn = psycopg2.connect("dbname=postgres host=localhost user=postgres password=postgres")
-        self.cur = self.conn.cursor()
-        file = open("DBInit.sql", "r")
-        self.conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-        # Set Database and user
-        for line in file:
-            print(line)
-            self.cur.execute(line)
-        file.close()
-        self.cur.close()
-        self.conn.close()
-        # Connecting to seng468 user
-        self.conn = psycopg2.connect("dbname=daytrading user=seng468 password='seng468'")
-        self.cur = self.conn.cursor()
-        file = open("daytrading.sql", "r")
-        # Set up tables
-        self.cur.execute(file.read())
-        file.close()
-
-
-    def close(self):
-        self.cur.close()
-        self.conn.close()
+    def start(self):
+        setUp()
 
 
     ##
@@ -39,16 +63,16 @@ class Database:
     # Output: (user_id, funds)
     # If no record is found returns None
     def selectUsers(self, user_id):
-        self.cur.execute("""
-	    Select *
-	    From users
-	    Where user_id = '{}';
-	    """.format(user_id))
-
-        result = self.cur.fetchone()
+        result = ""
+        with db_cursor() as cur:
+            cur.execute("""
+	           Select *
+	           From users
+	           Where user_id = '{}';
+	           """.format(user_id))
+            result = cur.fetchone()
 
         #print(result)
-
         return result
 
     # Input: (user_id, funds)
@@ -56,24 +80,24 @@ class Database:
     # The record containing user_id has it's funds changed to input funds
     # If no record is found creates a record with user_id and funds
     def changeUsers(self, user_id, funds):
-        self.cur.execute("""
-        INSERT INTO Users
-        Values
-        (
-          '{0}', --user_id
-          {1}    --funds
-        )
-        On Conflict (user_id)
-        DO
-        Update
-        SET funds = {1}
-        Returning *;
-        """.format(user_id, funds))
-
-        result = self.cur.fetchone()
+        result = ""
+        with db_cursor() as cur:
+            cur.execute("""
+                INSERT INTO Users
+                Values
+                (
+                '{0}', --user_id
+                {1}    --funds
+                )
+                On Conflict (user_id)
+                DO
+                Update
+                SET funds = {1}
+                Returning *;
+                """.format(user_id, funds))
+            result = cur.fetchone()
 
         #print('good')
-
         return result
 
 
@@ -85,6 +109,8 @@ class Database:
     # Output: (user_id, stock_sym, amount)
     # If no record is found returns None
     def selectAccount(self, user_id, stock_sym):
+        self.conn = psycopg2.connect("dbname=daytrading user=seng468 password='seng468'")
+        self.cur = self.conn.cursor()
         self.cur.execute("""
 	    Select *
     	From account
@@ -94,7 +120,9 @@ class Database:
         result = self.cur.fetchone()
 
         #print(result)
-
+        self.cur.close()
+        self.conn.commit()
+        self.conn.close()
         return result
 
     # Input: (user_id, stock_sym, amount)
@@ -102,6 +130,8 @@ class Database:
     # The record containing user_id and stock_sym has it's amount changed to input amount
     # If no record is found creates a record with user_id, stock_sym and amount
     def changeAccount(self, user_id, stock_sym, amount):
+        self.conn = psycopg2.connect("dbname=daytrading user=seng468 password='seng468'")
+        self.cur = self.conn.cursor()
         self.cur.execute("""
         INSERT INTO Account
         Values
@@ -120,7 +150,9 @@ class Database:
         result = self.cur.fetchone()
 
         #print('good')
-
+        self.cur.close()
+        self.conn.commit()
+        self.conn.close()
         return result
 
 
@@ -132,6 +164,8 @@ class Database:
     # Output: (user_id, command, stock_sym, amount, funds, timeadded) with highest timeadded (most recent)
     # If no record is found returns None
     def selectPending(self, user_id, command):
+        self.conn = psycopg2.connect("dbname=daytrading user=seng468 password='seng468'")
+        self.cur = self.conn.cursor()
         self.cur.execute("""
 	    Select *
 	    From pending
@@ -143,13 +177,17 @@ class Database:
         result = self.cur.fetchone()
 
         #print(result)
-
+        self.cur.close()
+        self.conn.commit()
+        self.conn.close()
         return result
 
     # Input: (user_id, command, stock_sym, amount, funds, timeadded)
     # Output: The record that is created
     # Inserts a new record with user_id, command, stock_sym, amount, funds, and timeadded
     def addPending(self, user_id, command, stock_sym, amount, funds, timeadded):
+        self.conn = psycopg2.connect("dbname=daytrading user=seng468 password='seng468'")
+        self.cur = self.conn.cursor()
         self.cur.execute("""
         INSERT INTO Pending
         Values
@@ -167,13 +205,17 @@ class Database:
         result = self.cur.fetchone()
 
         #print('good')
-
+        self.cur.close()
+        self.conn.commit()
+        self.conn.close()
         return result
 
     # Input: (user_id, command)
     # Output: The record that is deleted
     # Delete the record with user_id, command with highest timeadded (most recent)
     def removePending(self, user_id, command):
+        self.conn = psycopg2.connect("dbname=daytrading user=seng468 password='seng468'")
+        self.cur = self.conn.cursor()
         self.cur.execute("""
         Delete
         From Pending
@@ -191,7 +233,9 @@ class Database:
         result = self.cur.fetchone()
 
         #print(result)
-
+        self.cur.close()
+        self.conn.commit()
+        self.conn.close()
         return result
 
 
@@ -208,6 +252,8 @@ class Database:
     # If no record is found returns None
     def selectTrigger(self, user_id, command, stock_sym):
         if command == 'SET_BUY_AMOUNT' or command == 'SET_BUY_TRIGGER':
+            self.conn = psycopg2.connect("dbname=daytrading user=seng468 password='seng468'")
+            self.cur = self.conn.cursor()
             self.cur.execute("""
 	        Select *
 	        From BuyTriggers
@@ -225,13 +271,17 @@ class Database:
             result = self.cur.fetchone()
 
         #print(result)
-
+        self.cur.close()
+        self.conn.commit()
+        self.conn.close()
         return result
 
     # Input: NONE
     # Output: A list of all completed triggers
     # If no record is found returns an empty list
     def selectAllTrigger(self):
+        self.conn = psycopg2.connect("dbname=daytrading user=seng468 password='seng468'")
+        self.cur = self.conn.cursor()
         self.cur.execute("""
 	    Select *
 	    From BuyTriggers
@@ -249,7 +299,9 @@ class Database:
         sellResult = self.cur.fetchall()
 
 
-
+        self.cur.close()
+        self.conn.commit()
+        self.conn.close()
         return buyResult + sellResult
 
 
@@ -258,6 +310,8 @@ class Database:
     # The record containing user_id and stock_sym has it's reserve and trigger_amount changed to inputs
     # If no record is found creates a record with (user_id, stock_sym, reserve, trigger_amount)
     def changeTrigger(self, user_id, command, stock_sym, reserve, trigger_amount, amount=0):
+        self.conn = psycopg2.connect("dbname=daytrading user=seng468 password='seng468'")
+        self.cur = self.conn.cursor()
         if command == 'SET_BUY_AMOUNT' or command == 'SET_BUY_TRIGGER':
             self.cur.execute("""
             INSERT INTO BuyTriggers
@@ -297,7 +351,9 @@ class Database:
             result = self.cur.fetchone()
 
         #print('good')
-
+        self.cur.close()
+        self.conn.commit()
+        self.conn.close()
         return result
 
 
@@ -305,6 +361,8 @@ class Database:
     # Output: One record that is deleted
     # Delete all records with (user_id, stock_sym)
     def removeTrigger(self, user_id, command, stock_sym):
+        self.conn = psycopg2.connect("dbname=daytrading user=seng468 password='seng468'")
+        self.cur = self.conn.cursor()
         if command == 'SET_BUY_AMOUNT' or command == 'SET_BUY_TRIGGER':
             self.cur.execute("""
             Delete
@@ -325,7 +383,9 @@ class Database:
             result = self.cur.fetchone()
 
         #print(result)
-
+        self.cur.close()
+        self.conn.commit()
+        self.conn.close()
         return result
 
 
@@ -405,6 +465,8 @@ class Database:
     # Inserts a new record with (user_id, command, [stock_sym, amount, funds, and timeadded])
     # Puts Null if not given
     def addAudit(self, user_id, timeadded, server, command = None, stock_sym = None, amount = None, funds = None, cryptokey = None, filename = None, stock_price = None, quote_time = None, action = None, error_msg = None, debug_msg = None):
+        self.conn = psycopg2.connect("dbname=daytrading user=seng468 password='seng468'")
+        self.cur = self.conn.cursor()
         self.cur.execute("""
         INSERT INTO Audit
         Values
@@ -449,7 +511,9 @@ class Database:
         result = self.cur.fetchone()
 
         #print('good')
-
+        self.cur.close()
+        self.conn.commit()
+        self.conn.close()
         return result
 
 
@@ -457,6 +521,8 @@ class Database:
     # Output: A list of all records [containing user_id]
     # If no records exist returns an empty list
     def dumpAudit(self, user_id = None):
+        self.conn = psycopg2.connect("dbname=daytrading user=seng468 password='seng468'")
+        self.cur = self.conn.cursor()
         if user_id:
             self.cur.execute("""
             Select *
@@ -474,7 +540,9 @@ class Database:
         result = self.cur.fetchall()
 
         #print(result)
-
+        self.cur.close()
+        self.conn.commit()
+        self.conn.close()
         return result
 
 
@@ -486,6 +554,8 @@ class Database:
     #           [(user_id, command, stock_sym, amount, funds, timeadded), ...]  triggers
     # If any don't exist will return NONE, [], [], []
     def displaySummary(self, user_id):
+        self.conn = psycopg2.connect("dbname=daytrading user=seng468 password='seng468'")
+        self.cur = self.conn.cursor()
         balance = self.selectUsers(user_id)
 
         self.cur.execute("""
@@ -505,4 +575,7 @@ class Database:
 	    """.format(user_id))
         triggers = self.cur.fetchall()
 
+        self.cur.close()
+        self.conn.commit()
+        self.conn.close()
         return balance, stocks, transactionHistory, triggers

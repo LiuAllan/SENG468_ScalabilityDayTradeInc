@@ -47,6 +47,7 @@ transactionserverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # Initialize Database
 db = Database()
+db.start()
 
 # command, user=None, stock_sym=None, amount=None, filename=None
 
@@ -175,7 +176,7 @@ def logic(message):
                 db.removePending(message['user'], 'BUY')
                 response_msg = "Committed most recent BUY order"
 
-                # audit the commit buy 
+                # audit the commit buy
                 db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], stock_sym, funds = db.selectUsers(message['user'])[1], action = 'remove')
 
             else:
@@ -337,7 +338,7 @@ def logic(message):
                 SetbuyAmount = db.selectTrigger(message['user'], message['command'], message['stock_sym'])[3]
                 if amount <= SetbuyAmount:
                     reserve = SetbuyAmount // amount
-                    
+
                     db.changeTrigger(message['user'], message['command'], message['stock_sym'], reserve, amount)
                     db.addAudit(message['user'],  curr_time(), 'Transaction_server', message['command'], message['stock_sym'], funds = funds)
                     response_msg = "Buy trigger is set"
@@ -434,7 +435,7 @@ def logic(message):
 
             if stocks_owned >= amountOfStock:
                 db.changeAccount(message['user'], message['stock_sym'], stocks_owned - amountOfStock)
-                db.changeTrigger(message['user'], message['command'], message['stock_sym'], amountOfStock, amount) 
+                db.changeTrigger(message['user'], message['command'], message['stock_sym'], amountOfStock, amount)
                 response_msg = "Sell trigger is set."
             else:
                 response_msg = "Insufficient stock to set sell amount"
@@ -487,9 +488,9 @@ def logic(message):
         auditserverSocket.connect(('localhost', 44409))
 
         print('audit_dump is of type {}'.format(type(audit_dump)))
-		
+
         auditserverSocket.send(pickle.dumps(audit_dump))
-			
+
         auditserverSocket.close()
 
     elif message['command'] == 'DISPLAY_SUMMARY':
