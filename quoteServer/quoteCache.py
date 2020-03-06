@@ -3,7 +3,7 @@ import os
 import socket
 import string
 import sys
-import Queue
+import queue
 import time
 import threading
 
@@ -16,6 +16,9 @@ import threading
 #     - send the new quote back to transaction server
 # - Quote timestamp is based on local time***
 
+quoteCacheSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+# Placeholder
 cache = {
     "A":
     {
@@ -29,7 +32,7 @@ cache = {
 
 
 # https://www.geeksforgeeks.org/queue-in-python/
-arrival_queue = Queue.Queue()
+arrival_queue = queue.Queue()
 lock_cache = threading.Semaphore(1)
 
 
@@ -139,7 +142,7 @@ def thread_controller():
 def listen():
     try:
         # Prepare a server socket
-        quoteCacheSocket.bind(('localhost', 44404))
+        quoteCacheSocket.bind(('localhost', 44407))
     except socket.error:
         print("Failed binding socket to IP and port")
         return 0
@@ -156,8 +159,6 @@ def main():
         t = threading.Thread(target=thread_controller, args=())
         t.daemon = True
         t.start()
-
-    quoteCacheSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     if listen():
         while True:
