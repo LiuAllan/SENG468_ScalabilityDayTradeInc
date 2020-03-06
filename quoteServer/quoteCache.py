@@ -54,11 +54,11 @@ def get_quote(message):
 
     reply = {
         "price": response[0],
-        "stock_id": response[1],
+        "stock_sym": response[1],
         "user": response[2],
         "timestamp": response[3],
         "cryptokey": response[4],
-        "expire": now() + 60000
+        "expire": curr_time() + 60000
     }
 
     # reply = ast.literal_eval(str(reply.split(',')))
@@ -67,13 +67,13 @@ def get_quote(message):
 
 
 def check_cache(stock_sym):
-    cache_lock.acquire()
+    lock_cache.acquire()
     if stock_sym in cache:
         if cache[stock_sym]["expire"] >= curr_time():
             reply = {
                 "result": "match",
                 "price": cache[stock_sym]["price"],
-                "stock_id": stock_sym,
+                "stock_sym": stock_sym,
                 "user": cache[stock_sym]["user"],
                 "timestamp": cache[stock_sym]["timestamp"],
                 "cryptokey": cache[stock_sym]["cryptokey"],
@@ -108,8 +108,10 @@ def thread_controller():
         # Fetch from the queue
         connection = arrival_queue.get()
 
-        message = connection.recv(4096)
+        # Receive and convert string back into a dictionary so we can use it
+        message = connection.recv(4096).decode()
         message = ast.literal_eval(message)
+        print(message)
 
         if message["command"] == "BUY" or message["command"] == "SELL":
             # check the cache
@@ -122,6 +124,7 @@ def thread_controller():
             if quote["result"] != "match":
                 quote = get_quote(message)
                 update_cache(quote)
+        # trigger server will access this
         elif message["command"] == "TRIGGER":
             quote = check_cache(message["stock_sym"])
             if quote["result"] != "match":
@@ -130,8 +133,8 @@ def thread_controller():
         else:
             print("Quote Cache didn't detect any valid commands")
             quote = cache
-
-        connection.send(str(quote))
+        print(quote)
+        connection.send(str(quote).encode())
         connection.close()
 
         arrival_queue.task_done()
@@ -155,6 +158,7 @@ def listen():
 
 def main():
     # Make threads
+    print("Cache is listening")
     for i in range(1, 10):
         t = threading.Thread(target=thread_controller, args=())
         t.daemon = True
