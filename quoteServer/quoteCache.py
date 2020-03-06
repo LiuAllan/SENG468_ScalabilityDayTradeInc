@@ -125,7 +125,7 @@ def thread_controller():
                 quote = get_quote(message)
                 update_cache(quote)
         # trigger server will access this
-        elif message["command"] == "TRIGGER":
+        elif message["command"] == "SET_BUY_TRIGGER" or message["command"] == "SET_SELL_TRIGGER":
             quote = check_cache(message["stock_sym"])
             if quote["result"] != "match":
                 quote = get_quote(message)

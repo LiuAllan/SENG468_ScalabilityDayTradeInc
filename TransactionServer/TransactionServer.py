@@ -309,7 +309,6 @@ def logic(message):
 
                     # audit the error here
                     db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds = db.selectUsers(message['user'])[1], error_msg = response_msg, stock_sym = message['stock_sym'])
-					
 
                 else:
                     # Update the user funds by subtracting the amount from funds
@@ -407,7 +406,7 @@ def logic(message):
                     # Create the trigger
                     db.changeTrigger(message['user'], message['command'], message['stock_sym'], 0, amount)
                     response_msg = "SELL TRIGGER is Set"
-					db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], message['stock_sym'], funds = db.selectUsers(message['user'])[1])
+                    db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], message['stock_sym'], funds = db.selectUsers(message['user'])[1])
             else:
                 response_msg = "Not enough stock owned to set sell trigger"
                 # audit the error
@@ -512,7 +511,7 @@ def logic(message):
         auditserverSocket.close()
 
     elif message['command'] == 'DISPLAY_SUMMARY':
-        # print('display summary for ' + message['user'])
+        print('display summary for ' + message['user'])
         # userBalance = db.selectUsers(message['user'])[1]
         # stocks = db.selectAccount()[2] # number of stocks or all of the stock symbols in a list?
         # pendingTransaction = db.selectPending() # select stock_sym, funds, timestamp

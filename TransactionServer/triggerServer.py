@@ -56,13 +56,15 @@ def check_trigger():
     # has_sell_trigger = selectTrigger(user, command, stock_sym)
 
     for trigger in allTriggers:
+        print(trigger)
         current_quote = get_quote(trigger)
+        current_quote = ast.literal_eval(current_quote)
         if trigger['command'] == 'SET_BUY_TRIGGER':
             # Compare quote with trigger amount
-            if current_quote[0] <= trigger['triggerAmount']:
+            if current_quote['price'] <= trigger['triggerAmount']:
                 # update the DB
-                funds = selectUsers(trigger['user'])
-                db.changeUsers(trigger['user'], trigger['funds'] - current_quote[0])
+                # funds = selectUsers(trigger['user'])
+                db.changeUsers(trigger['user'], trigger['funds'] - current_quote['price'])
                 # create or update the stock for the user
                 db.changeAccount(trigger['user'], trigger['stock_sym'], trigger['amountOfStock'])
                 db.removeTrigger(trigger['user'], trigger['command'], trigger['stock_sym'])
@@ -70,9 +72,9 @@ def check_trigger():
                 print('Nothing done to Trigger')
 
         if command == 'SET_SELL_TRIGGER':
-            if current_quote[0] >= trigger['triggerAmount']:
+            if current_quote['price'] >= trigger['triggerAmount']:
                 # update the DB
-                db.changeUsers(trigger['user'], trigger['funds'] + current_quote[0])
+                db.changeUsers(trigger['user'], trigger['funds'] + current_quote['price'])
                 # create or update the stock for the user
                 db.changeAccount(trigger['user'], trigger['stock_sym'], trigger['amountOfStock'])
                 db.removeTrigger(trigger['user'], trigger['command'], trigger['stock_sym'])
