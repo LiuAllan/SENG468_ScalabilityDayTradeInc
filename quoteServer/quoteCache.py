@@ -50,6 +50,7 @@ def get_quote(message):
     print('sent symbol and user to quote server')
     response = quoteserverSocket.recv(1024).decode()
 
+    print(response)
     response = response.split(',')
 
     reply = {
@@ -57,7 +58,7 @@ def get_quote(message):
         "stock_sym": response[1],
         "user": response[2],
         "timestamp": response[3],
-        "cryptokey": response[4],
+        "cryptokey": response[4].strip(),
         "expire": curr_time() + 60000
     }
 
@@ -111,7 +112,7 @@ def thread_controller():
         # Receive and convert string back into a dictionary so we can use it
         message = connection.recv(4096).decode()
         message = ast.literal_eval(message)
-        print(message)
+        # print(message)
 
         if message["command"] == "BUY" or message["command"] == "SELL":
             # check the cache
