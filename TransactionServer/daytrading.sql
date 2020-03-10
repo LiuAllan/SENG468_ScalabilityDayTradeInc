@@ -57,7 +57,7 @@ CREATE TABLE Audit (
   cryptokey varchar(100),
   server varchar(30) NOT NULL,
   filename varchar(30),
-  stock_price int,
+  stock_price float,
   quote_time bigint,
   action varchar(30),
   error_msg varchar(100),
