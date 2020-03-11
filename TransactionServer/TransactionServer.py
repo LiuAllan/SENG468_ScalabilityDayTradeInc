@@ -499,6 +499,9 @@ def logic(message):
     elif message['command'] == 'DUMPLOG':
         #print(message['user'] + ', ' + message.get('filename', ''))
         #print('message is ', message)
+
+        db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds=db.selectUsers(message['user'])[1])
+
         audit_dump = db.dumpAudit()
         #send audit_dump to audit.py via socket
         auditserverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -511,11 +514,13 @@ def logic(message):
         auditserverSocket.close()
 
     elif message['command'] == 'DISPLAY_SUMMARY':
-        print('display summary for ' + message['user'])
+        # print('display summary for ' + message['user'])
         # userBalance = db.selectUsers(message['user'])[1]
         # stocks = db.selectAccount()[2] # number of stocks or all of the stock symbols in a list?
         # pendingTransaction = db.selectPending() # select stock_sym, funds, timestamp
         # triggers = db.selectTrigger() # select stock_sym, funds
+
+        db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds=db.selectUsers(message['user'])[1])
 
         userBalance, stocks, transactionHistory, triggers = db.displaySummary(message['user'])
 
