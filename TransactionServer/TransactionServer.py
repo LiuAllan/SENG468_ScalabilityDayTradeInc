@@ -500,7 +500,7 @@ def logic(message):
         #print(message['user'] + ', ' + message.get('filename', ''))
         #print('message is ', message)
 
-        db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds=db.selectUsers(message['user'])[1])
+        # db.addAudit('NaN', curr_time(), 'Transaction Server', message['command'], stock_sym = 'NaN')
 
         audit_dump = db.dumpAudit()
         #send audit_dump to audit.py via socket
@@ -520,7 +520,7 @@ def logic(message):
         # pendingTransaction = db.selectPending() # select stock_sym, funds, timestamp
         # triggers = db.selectTrigger() # select stock_sym, funds
 
-        db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds=db.selectUsers(message['user'])[1])
+        db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds = db.selectUsers(message['user'])[1], stock_sym = 'NaN')
 
         userBalance, stocks, transactionHistory, triggers = db.displaySummary(message['user'])
 
