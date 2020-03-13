@@ -500,7 +500,7 @@ def logic(message):
         #print(message['user'] + ', ' + message.get('filename', ''))
         #print('message is ', message)
 
-        # db.addAudit('NaN', curr_time(), 'Transaction Server', message['command'], stock_sym = 'NaN')
+        dumplog_info = ['root/administrator', curr_time(), 'Transaction Server', message['command'], message['user']]
 
         audit_dump = db.dumpAudit()
         #send audit_dump to audit.py via socket
@@ -509,7 +509,9 @@ def logic(message):
 
         print('audit_dump is of type {}'.format(type(audit_dump)))
 
-        auditserverSocket.send(pickle.dumps(audit_dump))
+        audit_list = [audit_dump, dumplog_info]
+
+        auditserverSocket.send(pickle.dumps(audit_list))
 
         auditserverSocket.close()
 
