@@ -76,14 +76,14 @@ def debugEvent(item):
     string += "    </debugEvent>\n"
     return string
 
-def userCommandDump(item):
+def userCommandDump(item, tr_count):
     string = "    <userCommand>\n"
     string += "        <timestamp>" + str(item[1]) + "</timestamp>\n"
     string += "        <server>" + str(item[2]) + "</server>\n"
-    string += "        <transactionNum>" + str(100) + "</transactionNum>\n"
+    string += "        <transactionNum>" + str(tr_count) + "</transactionNum>\n"
     string += "        <command>" + str(item[3]) + "</command>\n"
-    string += "        <username>" + "" + "</username>\n"
-    string += "        <funds>" +  "</funds>\n"
+    string += "        <username></username>\n"
+    string += "        <funds></funds>\n"
     string += "    </userCommand>\n"
     return string
 
@@ -308,7 +308,7 @@ def redirect(line, dumplog_info):
             #xml_file = open(line[1], "w")
             #xml_file.write(log_string)
 
-    log += userCommandDump(dumplog_info)
+    log += userCommandDump(dumplog_info, len(line)+1)
 
     log_string = '<?xml version="1.0"?>\n<log>\n\n' + log + '\n</log>'
     xml_file = open('TESTLOG.xml', "w")
