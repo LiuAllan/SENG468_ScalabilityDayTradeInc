@@ -76,6 +76,16 @@ def debugEvent(item):
     string += "    </debugEvent>\n"
     return string
 
+def userCommandDump(item):
+    string = "    <userCommand>\n"
+    string += "        <timestamp>" + str(item[1]) + "</timestamp>\n"
+    string += "        <server>" + str(item[2]) + "</server>\n"
+    string += "        <transactionNum>" + str(100) + "</transactionNum>\n"
+    string += "        <command>" + str(item[3]) + "</command>\n"
+    string += "        <username>" + "" + "</username>\n"
+    string += "        <funds>" +  "</funds>\n"
+    string += "    </userCommand>\n"
+    return string
 
 def main():
     auditServerSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -95,8 +105,9 @@ def main():
             line = pickle.loads(b"".join(data))
             #line = pickle.loads(c.recv(4096))
             print('line received is ', line)
-			
-            redirect(line)
+
+            # line is [dump_audit, dumplog_info]
+            redirect(line[0], line[1])
             #audit_print = redirect(line)
             #c.send(audit_print.encode())
 			
@@ -114,7 +125,7 @@ def main():
 
     #buy_amount = 0.00
     #sell_amount = 0.00
-def redirect(line):
+def redirect(line, dumplog_info):
     log = ""
     for item in line:
         if(item[2] == "ADD"):
@@ -290,11 +301,14 @@ def redirect(line):
                 log += systemEvent(item)
         #DISPLAY_SUMMARY ENDS
 
-        #elif (item[2] == "DUMPLOG"):
-            #print("DUMPLOG")
+        elif (item[2] == "DUMPLOG"):
+            print("DUMPLOG")
+            #log += userCommandDump(dumplog_info)
             #log_string = '<?xml version="1.0"?>\n<log>\n\n' + log + '\n</log>'
             #xml_file = open(line[1], "w")
             #xml_file.write(log_string)
+
+    log += userCommandDump(dumplog_info)
 
     log_string = '<?xml version="1.0"?>\n<log>\n\n' + log + '\n</log>'
     xml_file = open('TESTLOG.xml', "w")
