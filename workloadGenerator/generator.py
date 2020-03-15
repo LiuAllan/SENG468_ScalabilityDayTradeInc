@@ -116,7 +116,7 @@ def PROBLEM(params):
 
 
 # read in the workload file, split the commands into list so they can be processed
-filename = "1userWorkLoad"
+filename = "100User_testWorkLoad"
 switcher = {
     "ADD": ADD,
     "QUOTE": QUOTE,
