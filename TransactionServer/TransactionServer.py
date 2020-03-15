@@ -77,7 +77,9 @@ def logic(message):
         return "Stock symbol is invalid"
 
     if str(amount) and not acceptable_string(str(amount)):
-        return "Amount is invalid"
+        response_msg = "Amount is invalid"
+        db.addAudit(message['user'], curr_time(), 'Transaction Server', message['command'], funds = db.selectUsers(message['user'])[1], error_msg = response_msg)
+        return response_msg
 
 
     if message['command'] == 'ADD':
