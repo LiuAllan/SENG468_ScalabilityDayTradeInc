@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Sign Up</title>
+	<link rel="stylesheet" href="{{ url_for('static',     filename='signup.css') }}">
+</head>
+<body>
+	<table class="nav">
+		<tr>
+			<td class="nav1">
+                <a href="{{ url_for('index') }}"><img src="/static/icon.png" style="width:55px;height:50px;"></a>
+			</td>
+			<td class="nav2">
+				<p class="nav">
+					<a href="{{ url_for('login') }}">Login</a>
+				</p>
+			</td>
+			<td class="nav3">
+				<p class="nav">
+					<a href="{{ url_for('signup') }}">Sign Up</a>
+				</p>
+			<td>
+			</td>
+		</tr>
+	</table>
+
+	<form action="action_page.php" method="post">
+	  <div class="imgcontainer">
+          <h1>Sign Up</h1>
+	  </div>
+
+	  <div class="container">
+		<label for="uname"><b>Username</b></label>
+		<input type="text" placeholder="Enter Username" name="uname" required>
+
+		<label for="psw"><b>Password</b></label>
+		<input type="password" placeholder="Enter Password" name="psw" required>
+
+		<button type="submit">Sign Up!</button>
+	  </div>
+	</form>
+
+</body>
+</html>

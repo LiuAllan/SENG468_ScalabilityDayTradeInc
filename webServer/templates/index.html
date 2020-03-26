@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <title>Team Kitkat SENG468 Demo</title>
-     <link rel="stylesheet" href="{{ url_for('static',     filename='css/index.css') }}">
+     <link rel="stylesheet" href="{{ url_for('static',     filename='index.css') }}">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
 <script>
 $(document).ready(function() {
@@ -58,23 +58,24 @@ $(document).ready(function() {
 </script>
 </head>
 	<body>
-		<!--<table class="nav">-->
-			<!--<tr>-->
-				<!--<td class="nav1">-->
-				<!--</td>-->
-				<!--<td class="nav2">-->
-					<!--<p class="nav">-->
-						<!--<a href="#">Login</a>-->
-					<!--</p>-->
-				<!--</td>-->
-				<!--<td class="nav3">-->
-					<!--<p class="nav">-->
-						<!--<a href="#">Sign Up</a>-->
-					<!--</p>-->
-				<!--<td>-->
-				<!--</td>-->
-			<!--</tr>-->
-		<!--</table>-->
+		<table class="nav">
+			<tr>
+				<td class="nav1">
+					<a href="{{ url_for('index') }}"><img src="/static/icon.png" style="width:55px;height:50px;"></a>
+				</td>
+				<td class="nav2">
+					<p class="nav">
+						<a href="{{ url_for('login') }}">Login</a>
+					</p>
+				</td>
+				<td class="nav3">
+					<p class="nav">
+						<a href="{{ url_for('signup') }}">Sign Up</a>
+					</p>
+				<td>
+				</td>
+			</tr>
+		</table>
 		<div width="400" align="center">
 			<br><br>
 		    {% if response_message %}
@@ -94,15 +95,15 @@ $(document).ready(function() {
 					    <option value="CANCEL_BUY">Cancel Buy</option>
 					    <option value="SELL">Sell</option>
 					    <option value="COMMIT_SELL">Commit Sell</option>
-					    <!--<option value="CANCEL_SELL">Cancel Sell</option>-->
-					    <!--<option value="SET_BUY_AMOUNT">Set Buy Amount</option>-->
-					    <!--<option value="CANCEL_SET_BUY">Cancel Set Buy</option>-->
-					    <!--<option value="SET_BUY_TRIGGER">Set Buy Trigger</option>-->
-					    <!--<option value="SET_SELL_AMOUNT">Set Sell Amount</option>-->
-					    <!--<option value="SET_SELL_TRIGGER">Set Sell Trigger</option>-->
-					    <!--<option value="CANCEL_SET_SELL">Cancel Set Sell</option>-->
+					    <option value="CANCEL_SELL">Cancel Sell</option>
+					    <option value="SET_BUY_AMOUNT">Set Buy Amount</option>
+					    <option value="CANCEL_SET_BUY">Cancel Set Buy</option>
+					    <option value="SET_BUY_TRIGGER">Set Buy Trigger</option>
+					    <option value="SET_SELL_AMOUNT">Set Sell Amount</option>
+					    <option value="SET_SELL_TRIGGER">Set Sell Trigger</option>
+					    <option value="CANCEL_SET_SELL">Cancel Set Sell</option>
 					    <option value="DUMPLOG">Dumplog</option>
-					    <!--<option value="DISPLAY_SUMMARY">Display Summary</option>-->
+					    <option value="DISPLAY_SUMMARY">Display Summary</option>
 					</select>
 					<br><br>
 				</div>
